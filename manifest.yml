@@ -30,5 +30,15 @@ terraform_binaries:
   version: 1.19.0
   source: https://github.com/terraform-providers/terraform-provider-google/archive/v1.19.0.zip
 service_definitions:
+- services/google-dataflow.yml
 - services/google-dataproc.yml
+- services/google-datastore.yml
+- services/google-dialogflow.yml
+- services/google-firestore.yml
+- services/google-ml-apis.yml
 - services/google-redis.yml
+- services/google-stackdriver-debugger.yml
+- services/google-stackdriver-monitoring.yml
+- services/google-stackdriver-profiler.yml
+- services/google-stackdriver-trace.yml
+
