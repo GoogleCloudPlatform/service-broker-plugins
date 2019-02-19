@@ -15,7 +15,7 @@
 # This is a config file for Google Cloud Build
 ---
 steps:
-  - name: 'gcr.io/gcp-service-broker/gcp-service-broker'
+  - name: 'gcr.io/gcp-service-broker/gcp-service-broker@sha256:8598eaf4e81cd648e01210a01c63db5db718dc4d33aaf75811784932168703e7'
     args: ['pak', 'build']
 artifacts:
   objects:
