@@ -19,5 +19,5 @@ steps:
     args: ['pak', 'build']
 artifacts:
   objects:
-    location: 'gs://service-broker-plugins-artifacts/$BRANCH_NAME:$COMMIT_SHA/'
+    location: 'gs://service-broker-plugins-artifacts/$TAG_NAME:$COMMIT_SHA/'
     paths: ['*.brokerpak']
