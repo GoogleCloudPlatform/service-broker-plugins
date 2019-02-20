@@ -9,8 +9,10 @@ favorite build tool.
 The GCP Service Broker has several Docker images you can use as the foundation
 of the build system for your Brokerpak:
 
-* `gcr.io/gcp-service-broker/gcp-service-broker:develop` - nightly development
-* `gcr.io/gcp-service-broker/gcp-service-broker:latest` - latest release
+Current development branch:
 
-From there, you can run the `pak build` sub-command to generate the Brokerpak 
-artifact.
+`docker run gcr.io/gcp-service-broker/gcp-service-broker:develop pak build path/to/your/pak/dir`
+
+Latest stable release:
+
+`docker run gcr.io/gcp-service-broker/gcp-service-broker:latest pak build path/to/your/pak/dir`
