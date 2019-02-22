@@ -124,7 +124,7 @@ provision:
     constraints:
       maxLength: 222
       minLength: 3
-      pattern: ^[A-Za-z0-9_\.]+$
+      pattern: ^[A-Za-z0-9_\.-]+$
   - required: true
     field_name: name
     type: string
@@ -215,5 +215,5 @@ examples:
 - name: HA Configuration
   description: Create a HA Dataproc cluster with a 2 workers and 2 preemptible workers with a custom machine type.
   plan_id: 71cc321b-3ba3-4f0f-b058-90cfc978e743
-  provision_params: {"preemptible_count":2, "worker_count":2, "worker_machine_type":"custom-1-1024"}
+  provision_params: {"preemptible_count":2, "worker_count":2, "worker_machine_type":"custom-1-3584"}
   bind_params: {}
