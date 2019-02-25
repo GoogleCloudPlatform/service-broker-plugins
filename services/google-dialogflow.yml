@@ -13,7 +13,7 @@
 # limitations under the License.
 ---
 version: 1
-name: google-dialogflow
+name: google-dialogflow-v1
 id: b6cc9a8c-05da-4d47-a7df-fe4d9ee38c4e
 description: Dialogflow is an end-to-end, build-once deploy-everywhere development
   suite for creating conversational interfaces for websites, mobile applications,
@@ -101,6 +101,6 @@ examples:
 - name: Reader
   description: Creates a Dialogflow user and grants it permission to detect intent
     and read/write session properties (contexts, session entity types, etc.).
-  plan_id: 492f478d-267b-4e99-be7c-3ed33c80351d
+  plan_id: 3ac4e1bd-b22d-4a99-864b-d3a3ac582348
   provision_params: {}
   bind_params: {}

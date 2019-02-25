@@ -13,7 +13,7 @@
 # limitations under the License.
 ---
 version: 1
-name: google-firestore
+name: google-firestore-v1
 id: beaf8455-0e56-4552-81a5-096bfd9287d8
 description: Cloud Firestore is a fast, fully managed, serverless, cloud-native NoSQL
   document database that simplifies storing, syncing, and querying data for your mobile,

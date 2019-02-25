@@ -13,7 +13,7 @@
 # limitations under the License.
 ---
 version: 1
-name: google-stackdriver-trace
+name: google-stackdriver-trace-v1
 id: 6da5038d-83ad-4e43-a8e4-fb72baf4ed82
 description: Stackdriver Trace
 display_name: Stackdriver Trace

@@ -13,7 +13,7 @@
 # limitations under the License.
 ---
 version: 1
-name: google-stackdriver-debugger
+name: google-stackdriver-debugger-v1
 id: 5fb64341-cab4-4eda-a5e1-1d75ebab496b
 description: Stackdriver Debugger
 display_name: Stackdriver Debugger
