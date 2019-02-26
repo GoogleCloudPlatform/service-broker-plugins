@@ -64,11 +64,12 @@ provision:
       minLength: 4
   - field_name: location
     type: string
-    details: "A configuration for a Cloud Spanner instance.\n\t\t\t\t Configurations
-      define the geographic placement of nodes and their replication and are slightly
-      different from zones.\n\t\t\t\t There are single region configurations, multi-region
-      configurations, and multi-continent configurations.\n\t\t\t\t See the instance
-      docs https://cloud.google.com/spanner/docs/instances for a list of configurations."
+    details: |
+      A configuration for a Cloud Spanner instance. Configurations define the
+      geographic placement of nodes and their replication and are slightly
+      different from zones. There are single region configurations, multi-region
+      configurations, and multi-continent configurations. See the instance docs
+      https://cloud.google.com/spanner/docs/instances for a list of configurations.
     default: regional-us-central1
     constraints:
       examples:
@@ -80,6 +81,7 @@ provision:
   - name: labels
     default: ${json.marshal(request.default_labels)}
     overwrite: true
+    type: object
   template: |+
     variable display_name {type = "string"}
     variable labels {type = "map"}
@@ -87,16 +89,15 @@ provision:
     variable name {type = "string"}
     variable num_nodes {type = "string"}
 
-    resource "google_spanner_instance" "example" {
+    resource "google_spanner_instance" "instance" {
       name = "${var.name}"
       config = "${var.location}"
       display_name = "${var.display_name}"
       num_nodes = "${var.num_nodes}"
-      # labels = "${var.labels}"
+      labels = "${var.labels}"
     }
 
-    output instance_id {value = "${var.name}"}
-
+    output instance_id {value = "${google_spanner_instance.instance.name}"}
   outputs:
   - required: true
     field_name: instance_id
@@ -111,9 +112,9 @@ bind:
   user_inputs:
   - field_name: role
     type: string
-    details: "The role for the account without the \"roles/\" prefix.\n\tSee: https://cloud.google.com/iam/docs/understanding-roles
-      for more details.\n\tNote: The default enumeration may be overridden by your
-      operator."
+    details: |
+      The role for the account without the "roles/" prefix.
+      See: https://cloud.google.com/iam/docs/understanding-roles for more details.
     default: spanner.databaseUser
     enum:
       spanner.databaseAdmin: roles/spanner.databaseAdmin
@@ -147,8 +148,8 @@ bind:
 
     resource "google_spanner_instance_iam_member" "instance" {
       instance  = "${var.instance_id}"
-      role      = "${var.role}"
-      member    = "${google_service_account.account.email}"
+      role      = "roles/${var.role}"
+      member    = "serviceAccount:${google_service_account.account.email}"
     }
 
     output Email {value = "${google_service_account.account.email}"}
