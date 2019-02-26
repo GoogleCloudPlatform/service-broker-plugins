@@ -31,5 +31,6 @@ terraform_binaries:
   source: https://github.com/terraform-providers/terraform-provider-google/archive/v1.19.0.zip
 service_definitions:
 - services/google-dataproc.yml
-- services/google-redis.yml
 - services/google-iam.yml
+- services/google-redis.yml
+- services/google-storage.yml
