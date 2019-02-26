@@ -25,7 +25,7 @@ plans:
 - name: default
   id: 7c2c794b-f3a4-4ab1-a376-2ecd971a815b
   description: PubSub Default plan.
-  display_name: "default"
+  display_name: Default
   properties: {}
 provision:
   plan_inputs: []
@@ -45,47 +45,53 @@ provision:
     default: ""
     constraints:
       maxLength: 255
-      minLength: 3
-      pattern: ^[a-zA-Z][a-zA-Z0-9\d\-_~%\.\+]+
-  - field_name: is_push
-    type: string
-    details: Are events handled by POSTing to a URL?
-    default: "false"
-    enum:
-      "false": Events will be pulled from the subscription.
-      "true": The subscription will POST the events to a URL.
+      minLength: 0
+      pattern: ^(|[a-zA-Z][a-zA-Z0-9\d\-_~%\.\+]+)$
   - field_name: endpoint
     type: string
-    details: If `is_push` == 'true', then this is the URL that will be pushed to.
+    details: If not blank, then events sent to the subscription will be POSTed to this URL., then this , then this is the URL that will be pushed to.
     default: ""
   - field_name: ack_deadline
     type: string
-    details: "Value is in seconds. Max: 600\nThis is the maximum time after a subscriber
-      receives a message\nbefore the subscriber should acknowledge the message. After
-      message\ndelivery but before the ack deadline expires and before the message
-      is\nacknowledged, it is an outstanding message and will not be delivered\nagain
-      during that time (on a best-effort basis).\n        "
+    details: |
+      Value is in seconds. Max: 600
+      This is the maximum time after a subscriber receives a message before the
+      subscriber should acknowledge the message. After message delivery but
+      before the ack deadline expires and before the message is acknowledged, it
+      is an outstanding message and will not be delivered again during that time
+      (on a best-effort basis).
     default: "10"
   computed_inputs:
   - name: labels
     default: ${json.marshal(request.default_labels)}
+    type: object
     overwrite: true
   template: |+
     variable ack_deadline {type = "string"}
     variable endpoint {type = "string"}
-    variable is_push {type = "string"}
-    variable labels {type = "string"}
+    variable labels {type = "map"}
     variable subscription_name {type = "string"}
     variable topic_name {type = "string"}
 
     resource "google_pubsub_topic" "default" {
       name = "${var.topic_name}"
+      # TODO(josephlewis42): this isn't supported by Terraform at this time, but
+      # it is implemented by Magic Modules and is just waiting for a release.
+      # labels = "${var.labels}"
+    }
+
+    resource "google_pubsub_subscription" "nopush" {
+      count = "${(length(var.subscription_name) > 0 && length(var.endpoint) == 0) ? 1 : 0}"
+
+      name  = "${var.subscription_name}"
+      topic = "${google_pubsub_topic.default.name}"
+
+      ack_deadline_seconds = "${var.ack_deadline}"
     }
 
     resource "google_pubsub_subscription" "push" {
+      count = "${(length(var.subscription_name) > 0 && length(var.endpoint) != 0) ? 1 : 0}"
 
-      # only create if a subscription was given and a push config is needed
-      count = "${length(var.subscription_name) > 0 && var.is_push}"
       name  = "${var.subscription_name}"
       topic = "${google_pubsub_topic.default.name}"
 
@@ -94,16 +100,6 @@ provision:
       push_config {
         push_endpoint = "${var.endpoint}"
       }
-    }
-
-    resource "google_pubsub_subscription" "nopush" {
-
-      # only create if a subscription was given and a push config is NOT needed
-      count = "${length(var.subscription_name) > 0 && !var.is_push}"
-      name  = "${var.subscription_name}"
-      topic = "${google_pubsub_topic.default.name}"
-
-      ack_deadline_seconds = "${var.ack_deadline}"
     }
 
     output subscription_name {value = "${var.subscription_name}"}
@@ -127,18 +123,7 @@ provision:
       pattern: ^[a-zA-Z][a-zA-Z0-9\d\-_~%\.\+]+$
 bind:
   plan_inputs: []
-  user_inputs:
-  - field_name: role
-    type: string
-    details: "The role for the account without the \"roles/\" prefix.\n\tSee: https://cloud.google.com/iam/docs/understanding-roles
-      for more details.\n\tNote: The default enumeration may be overridden by your
-      operator."
-    default: pubsub.editor
-    enum:
-      pubsub.editor: roles/pubsub.editor
-      pubsub.publisher: roles/pubsub.publisher
-      pubsub.subscriber: roles/pubsub.subscriber
-      pubsub.viewer: roles/pubsub.viewer
+  user_inputs: []
   computed_inputs:
   - name: service_account_name
     default: ${str.truncate(20, "pcf-binding-${request.binding_id}")}
@@ -153,7 +138,6 @@ bind:
     default: ${instance.details["subscription_name"]}
     overwrite: true
   template: |
-    variable role {type = "string"}
     variable service_account_display_name {type = "string"}
     variable service_account_name {type = "string"}
     variable subscription_name {type = "string"}
@@ -170,14 +154,14 @@ bind:
 
     resource "google_pubsub_topic_iam_member" "default" {
       topic  = "${var.topic_name}"
-      role   = "${var.role}"
+      role   = "roles/pubsub.editor"
       member = "serviceAccount:${google_service_account.account.email}"
     }
 
     resource "google_pubsub_subscription_iam_member" "default" {
-      count = "${length(var.subscription_name) > 0}"
+      count        = "${length(var.subscription_name) > 0 ? 1 : 0}"
       subscription = "${var.subscription_name}"
-      role         = "${var.role}"
+      role         = "roles/pubsub.editor"
       member       = "serviceAccount:${google_service_account.account.email}"
     }
 
@@ -234,15 +218,13 @@ examples:
   provision_params:
     subscription_name: example_topic_subscription
     topic_name: example_topic
-  bind_params:
-    role: pubsub.publisher
+  bind_params: {}
 - name: No Subscription
   description: Create a topic without a subscription.
   plan_id: 7c2c794b-f3a4-4ab1-a376-2ecd971a815b
   provision_params:
     topic_name: example_topic
-  bind_params:
-    role: pubsub.publisher
+  bind_params: {}
 - name: Custom Timeout
   description: Create a subscription with a custom deadline for long processess.
   plan_id: 7c2c794b-f3a4-4ab1-a376-2ecd971a815b
@@ -250,5 +232,4 @@ examples:
     ack_deadline: "200"
     subscription_name: long_deadline_subscription
     topic_name: long_deadline_topic
-  bind_params:
-    role: pubsub.publisher
+  bind_params: {}
