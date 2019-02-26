@@ -29,17 +29,17 @@ plans:
   display_name: "Cloud Asset Viewer"
   properties: {"role":"roles/cloudasset.viewer"}
 provision:
-  plan_inputs:
-  - field_name: role
-    type: string
-    details: A GCP project role including the roles/ prefix.
-    required: true
+  plan_inputs: []
   user_inputs: []
   computed_inputs: []
   template: ""
   outputs: []
 bind:
-  plan_inputs: []
+  plan_inputs:
+  - field_name: role
+    type: string
+    details: A GCP project role including the roles/ prefix.
+    required: true
   user_inputs: []
   computed_inputs:
   - name: service_account_name
@@ -48,6 +48,7 @@ bind:
     type: string
   template: |
     variable service_account_name {type = "string"}
+    variable role {type = "string"}
 
     resource "google_service_account" "account" {
       account_id = "${var.service_account_name}"
@@ -59,7 +60,7 @@ bind:
     }
 
     resource "google_project_iam_member" "member" {
-      role   = "roles/datastore.user"
+      role   = "${var.role}"
       member = "serviceAccount:${google_service_account.account.email}"
     }
 
