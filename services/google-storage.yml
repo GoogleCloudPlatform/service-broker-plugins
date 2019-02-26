@@ -1,4 +1,4 @@
-# Copyright 2018 the Service Broker Project Authors.
+# Copyright 2019 the Service Broker Project Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -122,9 +122,9 @@ bind:
   user_inputs:
   - field_name: role
     type: string
-    details: "The role for the account without the \"roles/\" prefix.\n\tSee: https://cloud.google.com/iam/docs/understanding-roles
-      for more details.\n\tNote: The default enumeration may be overridden by your
-      operator."
+    details: |
+      The role for the account without the "roles/" prefix.
+      See: https://cloud.google.com/iam/docs/understanding-roles for more details.
     default: storage.objectAdmin
     enum:
       storage.objectAdmin: roles/storage.objectAdmin
@@ -160,8 +160,8 @@ bind:
 
     resource "google_storage_bucket_iam_member" "instance" {
       bucket  = "${var.bucket_name}"
-      role      = "${var.role}"
-      member    = "${google_service_account.account.email}"
+      role    = "roles/${var.role}"
+      member  = "serviceAccount:${google_service_account.account.email}"
     }
 
     output Email {value = "${google_service_account.account.email}"}
