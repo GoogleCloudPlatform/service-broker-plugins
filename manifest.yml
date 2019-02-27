@@ -32,6 +32,7 @@ terraform_binaries:
 service_definitions:
 - services/google-dataproc.yml
 - services/google-iam.yml
+- services/google-pubsub.yml
 - services/google-redis.yml
 - services/google-spanner.yml
 - services/google-storage.yml
