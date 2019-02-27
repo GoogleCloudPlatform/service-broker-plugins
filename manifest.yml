@@ -36,3 +36,4 @@ service_definitions:
 - services/google-redis.yml
 - services/google-spanner.yml
 - services/google-storage.yml
+- services/google-pubsub-topic.yml

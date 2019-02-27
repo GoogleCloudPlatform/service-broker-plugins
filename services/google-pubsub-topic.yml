@@ -1,0 +1,150 @@
+# Copyright 2018 the Service Broker Project Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http:#www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+version: 1
+name: google-pubsub-topic
+id: b9a027e1-a938-4a38-a61a-ab97ff26a814
+description: |
+  Creates a Pub/Sub topic on provision. Bindings get an account with access to
+  publish on the topic.
+display_name: Google Pub/Sub Topic
+image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/pubsub.svg
+documentation_url: https://cloud.google.com/pubsub/docs/
+support_url: https://cloud.google.com/pubsub/docs/support
+tags: [gcp, pubsub, topic]
+plans:
+- name: default
+  id: 9fd24d9e-5e48-4d57-b92f-247dd08e1551
+  description: Creates a Pub/Sub topic without any subscribers.
+  display_name: Pub/Sub Topic
+  properties: {}
+provision:
+  plan_inputs: []
+  user_inputs:
+  - field_name: topic_name
+    type: string
+    details: Name of the topic. Must not start with "goog".
+    default: pcf_sb_${counter.next()}_${time.nano()}
+    constraints:
+      maxLength: 255
+      minLength: 3
+      pattern: ^[a-zA-Z][a-zA-Z0-9\d\-_~%\.\+]+$
+  computed_inputs:
+  - name: labels
+    default: ${json.marshal(request.default_labels)}
+    type: object
+    overwrite: true
+  template: |+
+    variable labels {type = "map"}
+    variable topic_name {type = "string"}
+
+    resource "google_pubsub_topic" "topic" {
+      name = "${var.topic_name}"
+      # TODO(josephlewis42): this isn't supported by Terraform at this time, but
+      # it is implemented by Magic Modules and is just waiting for a release.
+      # labels = "${var.labels}"
+    }
+
+    output topic_name {value = "${google_pubsub_topic.topic.name}"}
+  outputs:
+  - required: true
+    field_name: topic_name
+    type: string
+    details: Name of the topic.
+    constraints:
+      maxLength: 255
+      minLength: 3
+      pattern: ^[a-zA-Z][a-zA-Z0-9\d\-_~%\.\+]+$
+bind:
+  plan_inputs: []
+  user_inputs: []
+  computed_inputs:
+  - name: service_account_name
+    default: ${str.truncate(20, "pcf-binding-${request.binding_id}")}
+    overwrite: true
+  - name: topic_name
+    default: ${instance.details["topic_name"]}
+    overwrite: true
+  template: |
+    variable service_account_name {type = "string"}
+    variable topic_name {type = "string"}
+
+    resource "google_service_account" "account" {
+      account_id = "${var.service_account_name}"
+      display_name = "${var.service_account_name}"
+    }
+
+    resource "google_service_account_key" "key" {
+      service_account_id = "${google_service_account.account.name}"
+    }
+
+    resource "google_pubsub_topic_iam_member" "default" {
+      topic  = "${var.topic_name}"
+      role   = "roles/pubsub.editor"
+      member = "serviceAccount:${google_service_account.account.email}"
+    }
+
+    output Email {value = "${google_service_account.account.email}"}
+    output Name {value = "${google_service_account.account.display_name}"}
+    output PrivateKeyData {value = "${google_service_account_key.key.private_key}"}
+    output ProjectId {value = "${google_service_account.account.project}"}
+    output UniqueId {value = "${google_service_account.account.unique_id}"}
+
+  outputs:
+  - required: true
+    field_name: Email
+    type: string
+    details: Email address of the service account.
+    constraints:
+      examples:
+      - pcf-binding-ex312029@my-project.iam.gserviceaccount.com
+      pattern: ^pcf-binding-[a-z0-9-]+@.+\.gserviceaccount\.com$
+  - required: true
+    field_name: Name
+    type: string
+    details: The name of the service account.
+    constraints:
+      examples:
+      - pcf-binding-ex312029
+  - required: true
+    field_name: PrivateKeyData
+    type: string
+    details: Service account private key data. Base64 encoded JSON.
+    constraints:
+      minLength: 512
+      pattern: ^[A-Za-z0-9+/]*=*$
+  - required: true
+    field_name: ProjectId
+    type: string
+    details: ID of the project that owns the service account.
+    constraints:
+      examples:
+      - my-project
+      maxLength: 30
+      minLength: 6
+      pattern: ^[a-z0-9-]+$
+  - required: true
+    field_name: UniqueId
+    type: string
+    details: Unique and stable ID of the service account.
+    constraints:
+      examples:
+      - "112447814736626230844"
+examples:
+- name: Basic Configuration
+  description: Create a topic and a publisher for it.
+  plan_id: 9fd24d9e-5e48-4d57-b92f-247dd08e1551
+  provision_params:
+    topic_name: example_topic_only
+  bind_params: {}
