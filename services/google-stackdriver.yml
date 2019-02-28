@@ -1,0 +1,194 @@
+# Copyright 2019 the Service Broker Project Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http:#www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+version: 1
+name: google-stackdriver-v2
+id: 29802e73-b8b3-441d-99b5-bea3492cf2cf
+description: |
+  Stackdriver aggregates metrics, logs, and events from infrastructure, giving
+  developers and operators a rich set of observable signals that speed
+  root-cause analysis and reduce mean time to resolution (MTTR). Stackdriver
+  doesn’t require extensive integration or multiple "panes of glass," and it
+  won’t lock developers into using a particular cloud provider.
+display_name: Stackdriver
+image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/stackdriver.svg
+documentation_url: https://cloud.google.com/stackdriver/docs/
+support_url: https://cloud.google.com/stackdriver/docs/getting-support
+tags: [gcp, stackdriver, preview]
+plans:
+- name: apm-trace-agent
+  id: ab368bf8-085b-43d4-90d3-f4bec1c1d14e
+  description: Grants access to write events to _just_ Stackdriver Trace.
+  display_name: "APM Trace Agent"
+  properties:
+    roles: roles/cloudtrace.agent
+- name: apm-debugger-agent
+  id: c2a4f712-faea-473a-bb14-b4edee65958d
+  description: Grants access to write events to _just_ Stackdriver Debugger.
+  display_name: "APM Debugger Agent"
+  properties:
+    roles: roles/clouddebugger.agent
+- name: apm-profiler-agent
+  id: 157fe0a1-f005-409f-8384-466720020107
+  description: Grants access to write events to _just_ Stackdriver Profiler.
+  display_name: "APM Profiler Agent"
+  properties:
+    roles: roles/cloudprofiler.agent
+- name: apm-agent
+  id: 6d89e10f-cd3f-4b31-a4b4-1c958b09efdc
+  description: Grants access to write data into Stackdriver Debugger, Trace, and Profiler.
+  display_name: "APM Agent"
+  properties:
+    roles: roles/clouddebugger.agent,roles/cloudtrace.agent,roles/cloudprofiler.agent
+- name: metric-writer
+  id: edf718c1-99ed-485d-9917-78a0085bac35
+  description: Grants access to write metrics to Stackdriver Monitoring.
+  display_name: "Metric Writer"
+  properties:
+    roles: roles/monitoring.metricWriter
+- name: log-writer
+  id: 3cd039ed-8dd3-48e7-967e-28eee43a2ba6
+  description: |
+    Grants access to write logs to Stackdriver Logging.
+    Use this if you want application logs to go to a location in addition to or
+    other than your normal cluster output.
+  display_name: "Log Writer"
+  properties:
+    roles: roles/logging.logWriter
+provision:
+  plan_inputs: []
+  user_inputs: []
+  computed_inputs: []
+  template: ''
+  outputs: []
+bind:
+  plan_inputs:
+  - field_name: roles
+    type: string
+    details: A comma delimited list of GCP project roles including the roles/ prefix.
+    required: true
+  user_inputs: []
+  computed_inputs:
+  - name: service_account_name
+    default: ${str.truncate(20, "pcf-binding-${request.binding_id}")}
+    overwrite: true
+    type: string
+  template: |
+    variable service_account_name {type = "string"}
+    variable roles {type = "string"}
+
+    locals {
+      role_list = "${split(",", var.roles)}"
+    }
+
+    resource "google_service_account" "account" {
+      account_id = "${var.service_account_name}"
+      display_name = "${var.service_account_name}"
+    }
+
+    resource "google_service_account_key" "key" {
+      service_account_id = "${google_service_account.account.name}"
+    }
+
+    resource "google_project_iam_member" "member" {
+      count  = "${length(local.role_list)}"
+
+      role   = "${local.role_list[count.index]}"
+      member = "serviceAccount:${google_service_account.account.email}"
+    }
+
+    output Email {value = "${google_service_account.account.email}"}
+    output Name {value = "${google_service_account.account.display_name}"}
+    output PrivateKeyData {value = "${google_service_account_key.key.private_key}"}
+    output ProjectId {value = "${google_service_account.account.project}"}
+    output UniqueId {value = "${google_service_account.account.unique_id}"}
+    output Roles {value = "${var.roles}"}
+  outputs:
+  - required: true
+    field_name: Email
+    type: string
+    details: Email address of the service account.
+    constraints:
+      examples:
+      - pcf-binding-ex312029@my-project.iam.gserviceaccount.com
+      pattern: ^pcf-binding-[a-z0-9-]+@.+\.gserviceaccount\.com$
+  - required: true
+    field_name: Name
+    type: string
+    details: The name of the service account.
+    constraints:
+      examples:
+      - pcf-binding-ex312029
+  - required: true
+    field_name: PrivateKeyData
+    type: string
+    details: Service account private key data. Base64 encoded JSON.
+    constraints:
+      minLength: 512
+      pattern: ^[A-Za-z0-9+/]*=*$
+  - required: true
+    field_name: ProjectId
+    type: string
+    details: ID of the project that owns the service account.
+    constraints:
+      examples:
+      - my-project
+      maxLength: 30
+      minLength: 6
+      pattern: ^[a-z0-9-]+$
+  - required: true
+    field_name: UniqueId
+    type: string
+    details: Unique and stable ID of the service account.
+    constraints:
+      examples:
+      - "112447814736626230844"
+  - required: true
+    field_name: Roles
+    type: string
+    details: A comma separated list of GCP roles granted to this account.
+    constraints:
+      examples:
+      - "roles/clouddebugger.agent,roles/cloudtrace.agent"
+examples:
+- name: Trace Agent
+  description: Creates an account with the role `cloudtrace.agent`.
+  plan_id: ab368bf8-085b-43d4-90d3-f4bec1c1d14e
+  provision_params: {}
+  bind_params: {}
+- name: Debugger Agent
+  description: Creates an account with the role `clouddebugger.agent`.
+  plan_id: c2a4f712-faea-473a-bb14-b4edee65958d
+  provision_params: {}
+  bind_params: {}
+- name: Profiler Agent
+  description: Creates an account with the role `cloudprofiler.agent`.
+  plan_id: 157fe0a1-f005-409f-8384-466720020107
+  provision_params: {}
+  bind_params: {}
+- name: Metric Writer
+  description: Creates an account with the role `monitoring.metricWriter`.
+  plan_id: edf718c1-99ed-485d-9917-78a0085bac35
+  provision_params: {}
+  bind_params: {}
+- name: APM Agent
+  description: Creates an account with the roles `monitoring.metricWriter`, `cloudtrace.agent`, `clouddebugger.agent`, and `cloudprofiler.agent`.
+  plan_id: 6d89e10f-cd3f-4b31-a4b4-1c958b09efdc
+  provision_params: {}
+  bind_params: {}
+- name: Logging Writer
+  description: Creates an account with the role `logging.logWriter`.
+  plan_id: 3cd039ed-8dd3-48e7-967e-28eee43a2ba6
+  provision_params: {}
+  bind_params: {}
