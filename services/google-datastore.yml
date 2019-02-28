@@ -13,7 +13,7 @@
 # limitations under the License.
 ---
 version: 1
-name: google-datastore-v1
+name: google-datastore-v2
 id: 34ea74c8-b281-46fa-9552-a993944a456b
 description: Google Cloud Datastore is a NoSQL document database service.
 display_name: Google Cloud Datastore
@@ -76,13 +76,14 @@ bind:
       member = "serviceAccount:${google_service_account.account.email}"
     }
 
-    output name {value = "${google_service_account.account.display_name}"}
-    output email {value = "${google_service_account.account.email}"}
-    output private_key {value = "${google_service_account_key.key.private_key}"}
-    output project_id {value = "${google_service_account.account.project}"}
+    output Email {value = "${google_service_account.account.email}"}
+    output Name {value = "${google_service_account.account.display_name}"}
+    output PrivateKeyData {value = "${google_service_account_key.key.private_key}"}
+    output ProjectId {value = "${google_service_account.account.project}"}
+    output UniqueId {value = "${google_service_account.account.unique_id}"}
   outputs:
   - required: true
-    field_name: email
+    field_name: Email
     type: string
     details: Email address of the service account.
     constraints:
@@ -90,21 +91,21 @@ bind:
       - pcf-binding-ex312029@my-project.iam.gserviceaccount.com
       pattern: ^pcf-binding-[a-z0-9-]+@.+\.gserviceaccount\.com$
   - required: true
-    field_name: name
+    field_name: Name
     type: string
     details: The name of the service account.
     constraints:
       examples:
       - pcf-binding-ex312029
   - required: true
-    field_name: private_key
+    field_name: PrivateKeyData
     type: string
     details: Service account private key data. Base64 encoded JSON.
     constraints:
       minLength: 512
       pattern: ^[A-Za-z0-9+/]*=*$
   - required: true
-    field_name: project_id
+    field_name: ProjectId
     type: string
     details: ID of the project that owns the service account.
     constraints:
@@ -113,6 +114,13 @@ bind:
       maxLength: 30
       minLength: 6
       pattern: ^[a-z0-9-]+$
+  - required: true
+    field_name: UniqueId
+    type: string
+    details: Unique and stable ID of the service account.
+    constraints:
+      examples:
+      - "112447814736626230844"
 examples:
 - name: Basic Configuration
   description: Creates a datastore and a user with the permission `datastore.user`.

@@ -27,7 +27,8 @@ plans:
   id: 45ad248c-d651-43e3-b7db-a185cd38c515
   description: Read only access to Cloud Assets metadata.
   display_name: "Cloud Asset Viewer"
-  properties: {"role":"roles/cloudasset.viewer"}
+  properties:
+    roles: roles/cloudasset.viewer
 provision:
   plan_inputs: []
   user_inputs: []
@@ -36,9 +37,9 @@ provision:
   outputs: []
 bind:
   plan_inputs:
-  - field_name: role
+  - field_name: roles
     type: string
-    details: A GCP project role including the roles/ prefix.
+    details: A comma delimited list of GCP project roles including the roles/ prefix.
     required: true
   user_inputs: []
   computed_inputs:
@@ -48,7 +49,11 @@ bind:
     type: string
   template: |
     variable service_account_name {type = "string"}
-    variable role {type = "string"}
+    variable roles {type = "string"}
+
+    locals {
+      role_list = "${split(",", var.roles)}"
+    }
 
     resource "google_service_account" "account" {
       account_id = "${var.service_account_name}"
@@ -60,7 +65,9 @@ bind:
     }
 
     resource "google_project_iam_member" "member" {
-      role   = "${var.role}"
+      count  = "${length(local.role_list)}"
+
+      role   = "${local.role_list[count.index]}"
       member = "serviceAccount:${google_service_account.account.email}"
     }
 
@@ -68,6 +75,7 @@ bind:
     output email {value = "${google_service_account.account.email}"}
     output private_key {value = "${google_service_account_key.key.private_key}"}
     output project_id {value = "${google_service_account.account.project}"}
+    output roles {value = "${var.roles}"}
   outputs:
   - required: true
     field_name: email
@@ -101,6 +109,13 @@ bind:
       maxLength: 30
       minLength: 6
       pattern: ^[a-z0-9-]+$
+  - required: true
+    field_name: roles
+    type: string
+    details: A comma separated list of GCP roles granted to this account.
+    constraints:
+      examples:
+      - "roles/clouddebugger.agent,roles/cloudtrace.agent"
 examples:
 - name: Cloud Asset Viewer
   description: Creates a service account and grants it the ability to use the Cloud Assets audit endpoints.

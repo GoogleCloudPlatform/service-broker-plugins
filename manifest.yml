@@ -40,9 +40,6 @@ service_definitions:
 - services/google-ml-apis.yml
 - services/google-redis.yml
 - services/google-spanner.yml
-- services/google-stackdriver-debugger.yml
-- services/google-stackdriver-monitoring.yml
-- services/google-stackdriver-profiler.yml
-- services/google-stackdriver-trace.yml
+- services/google-stackdriver.yml
 - services/google-storage.yml
 - services/google-pubsub-topic.yml
