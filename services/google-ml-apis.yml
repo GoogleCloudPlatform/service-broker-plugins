@@ -13,47 +13,49 @@
 # limitations under the License.
 ---
 version: 1
-name: google-iam-v1
-id: 9beae75a-2be4-4446-aa16-3c8f629e6671
-description: Google Cloud IAM creates service accounts with the given IAM role.
-  Each role is a distinct plan.
-display_name: Google Cloud IAM
-image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/iam.svg
-documentation_url: https://cloud.google.com/iam/docs/
-support_url: https://cloud.google.com/iam/docs/getting-support
-tags: [gcp, iam, preview]
+name: google-ml-apis-v2
+id: e676602c-1e7f-46d4-8b20-509f7f4ae0e4
+description: Machine Learning APIs including Vision, Translate, Speech, and Natural
+  Language.
+display_name: Google Machine Learning APIs
+image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/machine-learning.svg
+documentation_url: https://cloud.google.com/ml/
+support_url: https://cloud.google.com/support/
+tags: [gcp, ml, preview]
 plans:
-- name: cloudasset-viewer
-  id: 45ad248c-d651-43e3-b7db-a185cd38c515
-  description: Read only access to Cloud Assets metadata.
-  display_name: "Cloud Asset Viewer"
-  properties:
-    roles: roles/cloudasset.viewer
+- name: default
+  id: 1ea54197-9462-42f3-af7a-2c9fe67682e7
+  description: Machine Learning API default plan.
+  display_name: "Default"
+  properties: {}
 provision:
   plan_inputs: []
   user_inputs: []
   computed_inputs: []
-  template: ""
+  template: ''
   outputs: []
 bind:
-  plan_inputs:
-  - field_name: roles
+  plan_inputs: []
+  user_inputs:
+  - field_name: role
     type: string
-    details: A comma delimited list of GCP project roles including the roles/ prefix.
-    required: true
-  user_inputs: []
+    details: 'The role for the account. See: https://cloud.google.com/iam/docs/understanding-roles for more details.'
+    default: roles/ml.modelUser
+    enum:
+      roles/ml.developer: roles/ml.developer
+      roles/ml.jobOwner: roles/ml.jobOwner
+      roles/ml.modelOwner: roles/ml.modelOwner
+      roles/ml.modelUser: roles/ml.modelUser
+      roles/ml.operationOwner: roles/ml.operationOwner
+      roles/ml.viewer: roles/ml.viewer
   computed_inputs:
   - name: service_account_name
     default: ${str.truncate(20, "pcf-binding-${request.binding_id}")}
     overwrite: true
-    type: string
+    type: "string"
   template: |
+    variable role {type = "string"}
     variable service_account_name {type = "string"}
-    variable roles {type = "string"}
-
-    locals {
-      role_list = "${split(",", var.roles)}"
-    }
 
     resource "google_service_account" "account" {
       account_id = "${var.service_account_name}"
@@ -65,20 +67,18 @@ bind:
     }
 
     resource "google_project_iam_member" "member" {
-      count  = "${length(local.role_list)}"
-
-      role   = "${local.role_list[count.index]}"
+      role   = "${var.role}"
       member = "serviceAccount:${google_service_account.account.email}"
     }
 
-    output name {value = "${google_service_account.account.display_name}"}
-    output email {value = "${google_service_account.account.email}"}
-    output private_key {value = "${google_service_account_key.key.private_key}"}
-    output project_id {value = "${google_service_account.account.project}"}
-    output roles {value = "${var.roles}"}
+    output Email {value = "${google_service_account.account.email}"}
+    output Name {value = "${google_service_account.account.display_name}"}
+    output PrivateKeyData {value = "${google_service_account_key.key.private_key}"}
+    output ProjectId {value = "${google_service_account.account.project}"}
+    output UniqueId {value = "${google_service_account.account.unique_id}"}
   outputs:
   - required: true
-    field_name: email
+    field_name: Email
     type: string
     details: Email address of the service account.
     constraints:
@@ -86,21 +86,21 @@ bind:
       - pcf-binding-ex312029@my-project.iam.gserviceaccount.com
       pattern: ^pcf-binding-[a-z0-9-]+@.+\.gserviceaccount\.com$
   - required: true
-    field_name: name
+    field_name: Name
     type: string
     details: The name of the service account.
     constraints:
       examples:
       - pcf-binding-ex312029
   - required: true
-    field_name: private_key
+    field_name: PrivateKeyData
     type: string
     details: Service account private key data. Base64 encoded JSON.
     constraints:
       minLength: 512
       pattern: ^[A-Za-z0-9+/]*=*$
   - required: true
-    field_name: project_id
+    field_name: ProjectId
     type: string
     details: ID of the project that owns the service account.
     constraints:
@@ -110,15 +110,16 @@ bind:
       minLength: 6
       pattern: ^[a-z0-9-]+$
   - required: true
-    field_name: roles
+    field_name: UniqueId
     type: string
-    details: A comma separated list of GCP roles granted to this account.
+    details: Unique and stable ID of the service account.
     constraints:
       examples:
-      - "roles/clouddebugger.agent,roles/cloudtrace.agent"
+      - "112447814736626230844"
 examples:
-- name: Cloud Asset Viewer
-  description: Creates a service account and grants it the ability to use the Cloud Assets audit endpoints.
-  plan_id: 45ad248c-d651-43e3-b7db-a185cd38c515
+- name: Basic Configuration
+  description: Create an account with developer access to your ML models.
+  plan_id: 1ea54197-9462-42f3-af7a-2c9fe67682e7
   provision_params: {}
-  bind_params: {}
+  bind_params:
+    role: roles/ml.developer

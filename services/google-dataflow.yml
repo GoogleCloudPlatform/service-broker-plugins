@@ -13,47 +13,45 @@
 # limitations under the License.
 ---
 version: 1
-name: google-iam-v1
-id: 9beae75a-2be4-4446-aa16-3c8f629e6671
-description: Google Cloud IAM creates service accounts with the given IAM role.
-  Each role is a distinct plan.
-display_name: Google Cloud IAM
-image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/iam.svg
-documentation_url: https://cloud.google.com/iam/docs/
-support_url: https://cloud.google.com/iam/docs/getting-support
-tags: [gcp, iam, preview]
+name: google-dataflow-v2
+id: f0a7c435-3cb6-4f65-93f2-bd528e13ca9c
+description: A managed service for executing a wide variety of data processing patterns
+  built on Apache Beam.
+display_name: Google Cloud Dataflow
+image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/dataflow.svg
+documentation_url: https://cloud.google.com/dataflow/docs/
+support_url: https://cloud.google.com/dataflow/docs/support
+tags: [gcp, dataflow, preview]
 plans:
-- name: cloudasset-viewer
-  id: 45ad248c-d651-43e3-b7db-a185cd38c515
-  description: Read only access to Cloud Assets metadata.
-  display_name: "Cloud Asset Viewer"
-  properties:
-    roles: roles/cloudasset.viewer
+- name: default
+  id: 22bad5d4-0da5-4fab-b8fd-2f6790132892
+  description: Dataflow default plan.
+  display_name: "Default"
+  properties: {}
 provision:
   plan_inputs: []
   user_inputs: []
   computed_inputs: []
-  template: ""
+  template: ''
   outputs: []
 bind:
-  plan_inputs:
-  - field_name: roles
+  plan_inputs: []
+  user_inputs:
+  - field_name: role
     type: string
-    details: A comma delimited list of GCP project roles including the roles/ prefix.
-    required: true
-  user_inputs: []
+    details: 'The role for the account. See: https://cloud.google.com/iam/docs/understanding-roles for more details.'
+    default: roles/dataflow.developer
+    enum:
+      roles/dataflow.developer: roles/dataflow.developer
+      roles/dataflow.viewer: roles/dataflow.viewer
   computed_inputs:
   - name: service_account_name
     default: ${str.truncate(20, "pcf-binding-${request.binding_id}")}
     overwrite: true
     type: string
   template: |
+    variable role {type = "string"}
     variable service_account_name {type = "string"}
-    variable roles {type = "string"}
-
-    locals {
-      role_list = "${split(",", var.roles)}"
-    }
 
     resource "google_service_account" "account" {
       account_id = "${var.service_account_name}"
@@ -65,20 +63,18 @@ bind:
     }
 
     resource "google_project_iam_member" "member" {
-      count  = "${length(local.role_list)}"
-
-      role   = "${local.role_list[count.index]}"
+      role   = "roles/dialogflow.client"
       member = "serviceAccount:${google_service_account.account.email}"
     }
 
-    output name {value = "${google_service_account.account.display_name}"}
-    output email {value = "${google_service_account.account.email}"}
-    output private_key {value = "${google_service_account_key.key.private_key}"}
-    output project_id {value = "${google_service_account.account.project}"}
-    output roles {value = "${var.roles}"}
+    output Email {value = "${google_service_account.account.email}"}
+    output Name {value = "${google_service_account.account.display_name}"}
+    output PrivateKeyData {value = "${google_service_account_key.key.private_key}"}
+    output ProjectId {value = "${google_service_account.account.project}"}
+    output UniqueId {value = "${google_service_account.account.unique_id}"}
   outputs:
   - required: true
-    field_name: email
+    field_name: Email
     type: string
     details: Email address of the service account.
     constraints:
@@ -86,21 +82,21 @@ bind:
       - pcf-binding-ex312029@my-project.iam.gserviceaccount.com
       pattern: ^pcf-binding-[a-z0-9-]+@.+\.gserviceaccount\.com$
   - required: true
-    field_name: name
+    field_name: Name
     type: string
     details: The name of the service account.
     constraints:
       examples:
       - pcf-binding-ex312029
   - required: true
-    field_name: private_key
+    field_name: PrivateKeyData
     type: string
     details: Service account private key data. Base64 encoded JSON.
     constraints:
       minLength: 512
       pattern: ^[A-Za-z0-9+/]*=*$
   - required: true
-    field_name: project_id
+    field_name: ProjectId
     type: string
     details: ID of the project that owns the service account.
     constraints:
@@ -110,15 +106,22 @@ bind:
       minLength: 6
       pattern: ^[a-z0-9-]+$
   - required: true
-    field_name: roles
+    field_name: UniqueId
     type: string
-    details: A comma separated list of GCP roles granted to this account.
+    details: Unique and stable ID of the service account.
     constraints:
       examples:
-      - "roles/clouddebugger.agent,roles/cloudtrace.agent"
+      - "112447814736626230844"
 examples:
-- name: Cloud Asset Viewer
-  description: Creates a service account and grants it the ability to use the Cloud Assets audit endpoints.
-  plan_id: 45ad248c-d651-43e3-b7db-a185cd38c515
+- name: Developer
+  description: Creates a Dataflow user and grants it permission to create, drain and
+    cancel jobs.
+  plan_id: 22bad5d4-0da5-4fab-b8fd-2f6790132892
   provision_params: {}
   bind_params: {}
+- name: Viewer
+  description: Creates a Dataflow user and grants it permission to view jobs.
+  plan_id: 22bad5d4-0da5-4fab-b8fd-2f6790132892
+  provision_params: {}
+  bind_params:
+    role: roles/dataflow.viewer
