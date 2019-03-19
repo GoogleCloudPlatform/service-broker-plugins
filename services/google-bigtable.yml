@@ -1,0 +1,208 @@
+# Copyright 2019 the Service Broker Project Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http:#www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+version: 1
+name: google-bigtable-v2
+id: 83400d20-3759-494d-af9f-ec018633eafe
+description: A high performance NoSQL database service for large analytical and operational
+  workloads.
+display_name: Google Bigtable
+image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/bigtable.svg
+documentation_url: https://cloud.google.com/bigtable/
+support_url: https://cloud.google.com/bigtable/docs/support/getting-support
+tags: [gcp, bigtable]
+plans:
+- name: default
+  id: fa994dbd-97de-46c9-852a-a10b17dba450
+  description: 'Default plan for BigTable'
+  display_name: "Default BigTable Plan"
+  properties: {}
+provision:
+  user_inputs:
+  - field_name: name
+    type: string
+    details: The name of the Cloud Bigtable instance.
+    default: pcf-sb-${counter.next()}-${time.nano()}
+    constraints:
+      maxLength: 33
+      minLength: 6
+      pattern: ^[a-z][-0-9a-z]+$
+  - field_name: cluster_id
+    type: string
+    details: The ID of the Cloud Bigtable cluster.
+    default: ${str.truncate(20, name)}-cluster
+    constraints:
+      maxLength: 30
+      minLength: 6
+      pattern: ^[a-z][-0-9a-z]+[a-z]$
+  - field_name: display_name
+    type: string
+    details: The human-readable display name of the Bigtable instance.
+    default: ${name}
+    constraints:
+      maxLength: 30
+      minLength: 4
+  - field_name: zone
+    type: string
+    details: 'The zone to create the Cloud Bigtable cluster in. Zones that support
+      Bigtable instances are noted on the Cloud Bigtable locations page: https://cloud.google.com/bigtable/docs/locations.'
+    default: us-east1-b
+    constraints:
+      examples:
+      - us-central1-a
+      - europe-west2-b
+      - asia-northeast1-a
+      - australia-southeast1-c
+      pattern: ^[A-Za-z][-a-z0-9A-Z]+$
+  - field_name: storage_type
+    type: string
+    details: 'Either HDD or SSD. See: https://cloud.google.com/bigtable/pricing for
+      more information.'
+    default: SSD
+    enum:
+      HDD: HDD - Hard Disk Drive
+      SSD: SSD - Solid-state Drive
+  - field_name: num_nodes
+    type: integer
+    details: Number of nodes, between 3 and 30.
+    default: 3
+    constraints:
+      maximum: 30
+      minimum: 1
+  computed_inputs: []
+  template: |+
+    variable cluster_id {type = "string"}
+    variable display_name {type = "string"}
+    variable name {type = "string"}
+    variable num_nodes {type = "string"}
+    variable storage_type {type = "string"}
+    variable zone {type = "string"}
+
+    resource "google_bigtable_instance" "instance" {
+      name          = "${var.name}"
+      instance_type = "PRODUCTION"
+      display_name  = "${var.display_name}"
+
+      cluster {
+        cluster_id   = "${var.cluster_id}"
+        zone         = "${var.zone}"
+        num_nodes    = "${var.num_nodes}"
+        storage_type = "${var.storage_type}"
+      }
+    }
+
+    output instance_id {value = "${var.name}"}
+  outputs:
+  - field_name: instance_id
+    required: true
+    type: string
+    details: The name of the BigTable dataset.
+    constraints:
+      maxLength: 33
+      minLength: 6
+      pattern: ^[a-z][-0-9a-z]+$
+bind:
+  plan_inputs: []
+  user_inputs:
+  - field_name: role
+    type: string
+    details: "The role for the account without the \"roles/\" prefix.\n\tSee: https://cloud.google.com/iam/docs/understanding-roles
+      for more details.\n\tNote: The default enumeration may be overridden by your
+      operator."
+    default: bigtable.user
+    enum:
+      bigtable.reader: roles/bigtable.reader
+      bigtable.user: roles/bigtable.user
+      bigtable.viewer: roles/bigtable.viewer
+  computed_inputs:
+  - name: service_account_name
+    default: ${str.truncate(20, "pcf-binding-${request.binding_id}")}
+    overwrite: true
+    type: ""
+  template: |
+    variable role {type = "string"}
+    variable service_account_name {type = "string"}
+
+    resource "google_service_account" "account" {
+      account_id = "${var.service_account_name}"
+      display_name = "${var.service_account_name}"
+    }
+
+    resource "google_service_account_key" "key" {
+      service_account_id = "${google_service_account.account.name}"
+    }
+
+    resource "google_project_iam_member" "instance" {
+      role    = "roles/${var.role}"
+      member  = "serviceAccount:${google_service_account.account.email}"
+    }
+
+    output Email {value = "${google_service_account.account.email}"}
+    output Name {value = "${google_service_account.account.display_name}"}
+    output PrivateKeyData {value = "${google_service_account_key.key.private_key}"}
+    output ProjectId {value = "${google_service_account.account.project}"}
+    output UniqueId {value = "${google_service_account.account.unique_id}"}
+  outputs:
+  - required: true
+    field_name: Email
+    type: string
+    details: Email address of the service account.
+    constraints:
+      examples:
+      - pcf-binding-ex312029@my-project.iam.gserviceaccount.com
+      pattern: ^pcf-binding-[a-z0-9-]+@.+\.gserviceaccount\.com$
+  - required: true
+    field_name: Name
+    type: string
+    details: The name of the service account.
+    constraints:
+      examples:
+      - pcf-binding-ex312029
+  - required: true
+    field_name: PrivateKeyData
+    type: string
+    details: Service account private key data. Base64 encoded JSON.
+    constraints:
+      minLength: 512
+      pattern: ^[A-Za-z0-9+/]*=*$
+  - required: true
+    field_name: ProjectId
+    type: string
+    details: ID of the project that owns the service account.
+    constraints:
+      examples:
+      - my-project
+      maxLength: 30
+      minLength: 6
+      pattern: ^[a-z0-9-]+$
+  - required: true
+    field_name: UniqueId
+    type: string
+    details: Unique and stable ID of the service account.
+    constraints:
+      examples:
+      - "112447814736626230844"
+examples:
+- name: Default
+  description: Creates an SSD production table with three nodes.
+  plan_id: fa994dbd-97de-46c9-852a-a10b17dba450
+  provision_params: {}
+  bind_params: {}
+- name: HDD
+  description: Creates an HDD production table with three nodes.
+  plan_id: fa994dbd-97de-46c9-852a-a10b17dba450
+  provision_params:
+    storage_type: HDD
+    num_nodes: 3
+  bind_params: {}

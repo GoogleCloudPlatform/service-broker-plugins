@@ -1,0 +1,171 @@
+# Copyright 2019 the Service Broker Project Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http:#www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+version: 1
+name: google-bigquery-v2
+id: 95cee799-7277-411b-9a75-490f672f7424
+description: A fast, economical and fully managed data warehouse for large-scale data
+  analytics.
+display_name: Google BigQuery
+image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/bigquery.svg
+documentation_url: https://cloud.google.com/bigquery/docs/
+support_url: https://cloud.google.com/bigquery/support
+tags: [gcp, bigquery]
+plans:
+- name: default
+  id: 118aa493-4d69-4a67-9782-f39f667ad586
+  description: BigQuery default plan.
+  display_name: "Default"
+  properties: {}
+provision:
+  plan_inputs: []
+  user_inputs:
+  - field_name: name
+    type: string
+    details: The name of the BigQuery dataset.
+    default: pcf_sb_${counter.next()}_${time.nano()}
+    constraints:
+      maxLength: 1024
+      pattern: ^[A-Za-z0-9_]+$
+  - field_name: location
+    type: string
+    details: The location of the BigQuery instance.
+    default: US
+    constraints:
+      examples:
+      - US
+      - EU
+      - asia-northeast1
+      pattern: ^[A-Za-z][-a-z0-9A-Z]+$
+  computed_inputs:
+  - name: labels
+    default: ${json.marshal(request.default_labels)}
+    overwrite: true
+    type: "object"
+  template: |+
+    variable labels {type = "map"}
+    variable location {type = "string"}
+    variable name {type = "string"}
+
+    resource "google_bigquery_dataset" "instance" {
+      dataset_id  = "${var.name}"
+      location    = "${var.location}"
+      labels      = "${var.labels}"
+    }
+
+    output dataset_id {value = "${google_bigquery_dataset.instance.dataset_id}"}
+  outputs:
+  - required: true
+    field_name: dataset_id
+    type: string
+    details: The name of the BigQuery dataset.
+    constraints:
+      maxLength: 1024
+      pattern: ^[A-Za-z0-9_]+$
+bind:
+  plan_inputs: []
+  user_inputs:
+  - field_name: role
+    type: string
+    details: |
+      The role for the account without the "roles/" prefix.
+      See: https://cloud.google.com/iam/docs/understanding-roles for more details.
+    default: bigquery.user
+    enum:
+      bigquery.dataEditor: roles/bigquery.dataEditor
+      bigquery.dataOwner: roles/bigquery.dataOwner
+      bigquery.dataViewer: roles/bigquery.dataViewer
+      bigquery.jobUser: roles/bigquery.jobUser
+      bigquery.user: roles/bigquery.user
+  computed_inputs:
+  - name: service_account_name
+    default: ${str.truncate(20, "pcf-binding-${request.binding_id}")}
+    overwrite: true
+    type: ""
+  - name: service_account_display_name
+    default: ${service_account_name}
+    overwrite: true
+    type: ""
+  template: |
+    variable role {type = "string"}
+    variable service_account_display_name {type = "string"}
+    variable service_account_name {type = "string"}
+
+    resource "google_service_account" "account" {
+      account_id = "${var.service_account_name}"
+      display_name = "${var.service_account_name}"
+    }
+
+    resource "google_service_account_key" "key" {
+      service_account_id = "${google_service_account.account.name}"
+    }
+
+    resource "google_project_iam_member" "instance" {
+      role    = "roles/${var.role}"
+      member  = "serviceAccount:${google_service_account.account.email}"
+    }
+
+    output Email {value = "${google_service_account.account.email}"}
+    output Name {value = "${google_service_account.account.display_name}"}
+    output PrivateKeyData {value = "${google_service_account_key.key.private_key}"}
+    output ProjectId {value = "${google_service_account.account.project}"}
+    output UniqueId {value = "${google_service_account.account.unique_id}"}
+  outputs:
+  - required: true
+    field_name: Email
+    type: string
+    details: Email address of the service account.
+    constraints:
+      examples:
+      - pcf-binding-ex312029@my-project.iam.gserviceaccount.com
+      pattern: ^pcf-binding-[a-z0-9-]+@.+\.gserviceaccount\.com$
+  - required: true
+    field_name: Name
+    type: string
+    details: The name of the service account.
+    constraints:
+      examples:
+      - pcf-binding-ex312029
+  - required: true
+    field_name: PrivateKeyData
+    type: string
+    details: Service account private key data. Base64 encoded JSON.
+    constraints:
+      minLength: 512
+      pattern: ^[A-Za-z0-9+/]*=*$
+  - required: true
+    field_name: ProjectId
+    type: string
+    details: ID of the project that owns the service account.
+    constraints:
+      examples:
+      - my-project
+      maxLength: 30
+      minLength: 6
+      pattern: ^[a-z0-9-]+$
+  - required: true
+    field_name: UniqueId
+    type: string
+    details: Unique and stable ID of the service account.
+    constraints:
+      examples:
+      - "112447814736626230844"
+examples:
+- name: Basic Configuration
+  description: Create a dataset and account that can manage and query the data.
+  plan_id: 118aa493-4d69-4a67-9782-f39f667ad586
+  provision_params:
+    name: orders_1997
+  bind_params:
+    role: bigquery.user

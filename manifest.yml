@@ -30,6 +30,8 @@ terraform_binaries:
   version: 1.19.0
   source: https://github.com/terraform-providers/terraform-provider-google/archive/v1.19.0.zip
 service_definitions:
+- services/google-bigquery.yml
+- services/google-bigtable.yml
 - services/google-dataflow.yml
 - services/google-dataproc.yml
 - services/google-datastore.yml
