@@ -1,0 +1,520 @@
+# Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http:#www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+version: 1
+name: google-cloudsql-mysql-v2
+id: 9d050fd2-938b-4ce9-bdfd-7df499323df0
+description: Google Cloud SQL is a fully-managed MySQL database service.
+  Only second generation instances are supported.
+display_name: Google CloudSQL MySQL
+image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/sql.svg
+documentation_url: https://cloud.google.com/sql/docs/
+support_url: https://cloud.google.com/sql/docs/getting-support
+tags: [gcp, cloudsql, mysql]
+plans:
+- name: ha
+  id: 2e5bf7ba-a724-458e-beeb-9328d7024540
+  display_name: High Availability
+  description: A high-availability setup that runs a hot-backup in a separate zone.
+  properties:
+    failover_enabled: "true"
+  provision_overrides:
+    backup_enabled: true
+    backup_binary_log_enabled: true
+  bind_overrides: {}
+- name: standard
+  id: 485b1696-7587-4e21-aecc-786367340839
+  display_name: Standard Availability
+  description: A standard-availability setup. One database instance is run and will not be available during scheduled upgrades.
+  properties:
+    failover_enabled: "false"
+  provision_overrides: {}
+  bind_overrides: {}
+provision:
+  plan_inputs:
+  - field_name: failover_enabled
+    type: string
+    details: Whether failover is enabled, the string true or false.
+  user_inputs:
+  - field_name: instance_name
+    type: string
+    details: Name of the Cloud SQL instance.
+    default: pcf-sb-${counter.next()}-${time.nano()}
+    constraints:
+      maxLength: 84
+      pattern: ^[a-z][a-z0-9-]+$
+  - field_name: database_name
+    type: string
+    details: Name of the database inside of the instance. Must be a valid MySQL identifier.
+    default: ${instance_name}
+  - field_name: region
+    type: string
+    details: The geographical region. See the instance locations list https://cloud.google.com/sql/docs/mysql/instance-locations
+      for which regions support which databases.
+    default: us-central
+    constraints:
+      examples:
+      - northamerica-northeast1
+      - southamerica-east1
+      - us-east1
+      pattern: ^[A-Za-z][-a-z0-9A-Z]+$
+  - field_name: tier
+    required: true
+    type: string
+    details: Database tier, this will affect the number of CPUs and RAM in the database. See https://cloud.google.com/sql/pricing for more information.
+    enum:
+      db-f1-micro: "CPU: Shared (No SLA), RAM: 0.6 GB, Max Disk: 3,062 GB, Max Connections: 250"
+      db-g1-small: "CPU: Shared (No SLA), RAM: 1.7 GB, Max Disk: 3,062 GB, Max Connections: 1,000"
+      db-n1-standard-1: "CPU: 1, RAM: 3.75 GB, Max Disk: 10,230 GB, Max Connections: 4,000"
+      db-n1-standard-2: "CPU: 2, RAM: 7.5 GB, Max Disk: 10,230 GB, Max Connections: 4,000"
+      db-n1-standard-4: "CPU: 4, RAM: 15 GB, Max Disk: 10,230 GB, Max Connections: 4,000"
+      db-n1-standard-8: "CPU: 8, RAM: 30 GB, Max Disk: 10,230 GB, Max Connections: 4,000"
+      db-n1-standard-16: "CPU: 16, RAM: 60 GB, Max Disk: 10,230 GB, Max Connections: 4,000"
+      db-n1-standard-32: "CPU: 32, RAM: 120 GB, Max Disk: 10,230 GB, Max Connections: 4,000"
+      db-n1-standard-64: "CPU: 64, RAM: 240 GB, Max Disk: 10,230 GB, Max Connections: 4,000"
+      db-n1-highmem-2: "CPU: 2, RAM: 13 GB, Max Disk: 10,230 GB, Max Connections: 4,000"
+      db-n1-highmem-4: "CPU: 4, RAM: 26 GB, Max Disk: 10,230 GB, Max Connections: 4,000"
+      db-n1-highmem-8: "CPU: 8, RAM: 52 GB, Max Disk: 10,230 GB, Max Connections: 4,000"
+      db-n1-highmem-16: "CPU: 16, RAM: 104 GB, Max Disk: 10,230 GB, Max Connections: 4,000"
+      db-n1-highmem-32: "CPU: 32, RAM: 208 GB, Max Disk: 10,230 GB, Max Connections: 4,000"
+      db-n1-highmem-64: "CPU: 64, RAM: 416 GB, Max Disk: 10,230 GB, Max Connections: 4,000"
+  - field_name: database_version
+    type: string
+    details: The database engine type and version.
+    default: "MYSQL_5_7"
+    enum:
+      MYSQL_5_6: MySQL 5.6.X
+      MYSQL_5_7: MySQL 5.7.X
+  - field_name: disk_size
+    type: integer
+    details: Initial disk size in GB.
+    default: 10
+    constraints:
+      minimum: 10
+      maximum: 10230
+  - field_name: disk_autoresize
+    type: boolean
+    details: Should the disk increase in size automatically as the data grows?
+    default: true
+  - field_name: disk_type
+    type: string
+    details: Type of disk.
+    default: PD_SSD
+    enum:
+      PD_HDD: magnetic hard drive
+      PD_SSD: flash storage drive
+  - field_name: maintenance_window_day
+    type: string
+    details: The day of the week (1-7), starting on Monday when updates requiring a restart can be made.
+    default: "1"
+    enum:
+      "1": Monday
+      "2": Tuesday
+      "3": Wednesday
+      "4": Thursday
+      "5": Friday
+      "6": Saturday
+      "7": Sunday
+  - field_name: maintenance_window_hour
+    type: string
+    details: The hour of the day (0-23 UTC) when updates requiring a restart can be made.
+    default: "1"
+    constraints:
+      pattern: ^(0?[0-9]|1[0-9]|2[0-3])$
+  - field_name: backup_enabled
+    type: boolean
+    details: Should daily backups be enabled for the service?
+    default: true
+  - field_name: backup_start_time
+    type: string
+    details: Start time for the daily backup configuration in UTC timezone in the
+      24 hour format - HH:MM.
+    default: "06:00"
+    constraints:
+      pattern: ^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$
+  - field_name: backup_binary_log_enabled
+    type: boolean
+    details: Whether binary log is enabled. If backup configuration is disabled, binary log must be disabled as well.
+    default: true
+  - field_name: authorized_networks
+    type: string
+    details: A comma separated list of CIDR notation IPv4 or IPv6 address that are allowed to access this instance.
+    default: ""
+  - field_name: replication_type
+    type: string
+    details: The type of replication this instance uses. This can be either ASYNCHRONOUS or SYNCHRONOUS.
+    default: SYNCHRONOUS
+    enum:
+      ASYNCHRONOUS: Asynchronous Replication
+      SYNCHRONOUS: Synchronous Replication
+  computed_inputs:
+  - name: labels
+    default: ${json.marshal(request.default_labels)}
+    type: object
+    overwrite: true
+  template: |+
+    variable failover_enabled {type = "string"}
+    variable instance_name {type = "string"}
+    variable database_version {type = "string"}
+    variable region {type = "string"}
+    variable tier {type = "string"}
+    variable disk_size {type = "string"}
+    variable disk_autoresize {type = "string"}
+    variable disk_type {type = "string"}
+    variable maintenance_window_day {type = "string"}
+    variable maintenance_window_hour {type = "string"}
+    variable backup_enabled {type = "string"}
+    variable backup_start_time {type = "string"}
+    variable backup_binary_log_enabled {type = "string"}
+    variable authorized_networks {type = "string"}
+    variable replication_type {type = "string"}
+
+    variable labels {type = "map"}
+    variable database_name {type = "string"}
+
+    locals {
+      authorized_networks_list = "${split(",", var.authorized_networks)}"
+    }
+
+    data "null_data_source" "allowed_networks" {
+      count  = "${length(local.authorized_networks_list)}"
+
+      inputs = {
+        value = "${local.authorized_networks_list[count.index]}"
+      }
+    }
+
+
+    resource "google_sql_database_instance" "master" {
+      database_version  = "${var.database_version}"
+      name              = "${var.instance_name}"
+      region            = "${var.region}"
+
+      settings {
+        tier              = "${var.tier}"
+        disk_autoresize   = "${var.disk_autoresize}"
+        disk_size         = "${var.disk_size}"
+        disk_type         = "${var.disk_type}"
+        replication_type  = "${var.replication_type}"
+        user_labels       = "${var.labels}"
+
+        backup_configuration {
+          binary_log_enabled  = "${var.backup_binary_log_enabled}"
+          enabled             = "${var.backup_enabled}"
+          start_time          = "${var.backup_start_time}"
+        }
+
+        ip_configuration {
+          ipv4_enabled  = "true"
+          require_ssl   = "true"
+
+          # authorized_networks = [
+          #   "${data.null_data_source.allowed_networks.*.outputs}",
+          # ]
+        }
+
+        maintenance_window {
+          day   = "${var.maintenance_window_day}"
+          hour  = "${var.maintenance_window_hour}"
+        }
+      }
+    }
+
+    resource "google_sql_database_instance" "failover" {
+      count = "${var.failover_enabled == "true" ? 1 : 0}"
+
+      database_version  = "${var.database_version}"
+      name              = "${var.instance_name}-failover"
+      region            = "${var.region}"
+
+      master_instance_name = "${google_sql_database_instance.master.name}"
+
+      settings {
+        tier              = "${var.tier}"
+        disk_autoresize   = "${var.disk_autoresize}"
+        disk_size         = "${var.disk_size}"
+        disk_type         = "${var.disk_type}"
+        user_labels       = "${var.labels}"
+
+        ip_configuration {
+          ipv4_enabled  = "true"
+          require_ssl   = "true"
+
+          # authorized_networks = [
+          #   "${data.null_data_source.allowed_networks.*.outputs}",
+          # ]
+        }
+      }
+
+      replica_configuration {
+        failover_target      = "true"
+      }
+    }
+
+    resource "google_sql_database" "db" {
+      name      = "${var.database_name}"
+      instance  = "${google_sql_database_instance.master.name}"
+    }
+
+    output database_name {value = "${var.database_name}"}
+    output host {value = "${google_sql_database_instance.master.first_ip_address}"}
+    output instance_name {value = "${var.instance_name}"}
+  outputs:
+  - required: true
+    field_name: database_name
+    type: string
+    details: The name of the database on the instance.
+    constraints:
+      examples:
+      - pcf-sb-2-1540412407295372465
+  - required: true
+    field_name: host
+    type: string
+    details: The hostname or IP address of the database instance.
+    constraints:
+      examples:
+      - 127.0.0.1
+  - required: true
+    field_name: instance_name
+    type: string
+    details: The name of the database instance.
+    constraints:
+      examples:
+      - pcf-sb-1-1540412407295273023
+      maxLength: 84
+      pattern: ^[a-z][a-z0-9-]+$
+bind:
+  plan_inputs: []
+  user_inputs:
+  - field_name: role
+    type: string
+    details: "The role for the account without the \"roles/\" prefix.\n\tSee: https://cloud.google.com/iam/docs/understanding-roles
+      for more details.\n\tNote: The default enumeration may be overridden by your
+      operator."
+    default: cloudsql.client
+    enum:
+      cloudsql.client: roles/cloudsql.client
+      cloudsql.editor: roles/cloudsql.editor
+      cloudsql.viewer: roles/cloudsql.viewer
+  - field_name: username
+    type: string
+    details: The SQL username for the account.
+    default: sb${str.truncate(14, time.nano())}
+  - field_name: password
+    type: string
+    details: The SQL password for the account.
+    default: ${rand.base64(32)}
+  computed_inputs:
+  - name: service_account_name
+    default: ${str.truncate(20, "pcf-binding-${request.binding_id}")}
+    overwrite: true
+    type: ""
+  - name: password
+    default: '${password == "" ? "${rand.base64(32)}" : password}'
+    overwrite: true
+    type: ""
+  - name: username
+    default: '${username == "" ? "sb${str.truncate(14, time.nano())}" : username}'
+    overwrite: true
+    type: ""
+  - name: certname
+    default: ${str.truncate(10, request.binding_id)}cert
+    overwrite: true
+    type: ""
+  - name: instance_name
+    default: ${instance.details["instance_name"]}
+    overwrite: true
+    type: "string"
+  - name: database_name
+    default: ${instance.details["database_name"]}
+    overwrite: true
+    type: "string"
+  - name: host
+    default: ${instance.details["host"]}
+    overwrite: true
+    type: "string"
+  template: |
+    # SSL cert to connect through the MySQL proxy
+    variable certname {type = "string"}
+    variable instance_name {type = "string"}
+
+    resource "google_sql_ssl_cert" "client_cert" {
+      common_name = "${var.certname}"
+      instance    = "${var.instance_name}"
+    }
+
+    output CaCert {value = "${google_sql_ssl_cert.client_cert.server_ca_cert}"}
+    output ClientCert {value = "${google_sql_ssl_cert.client_cert.cert}"}
+    output ClientKey {value = "${google_sql_ssl_cert.client_cert.private_key}"}
+    output Sha1Fingerprint {value = "${google_sql_ssl_cert.client_cert.sha1_fingerprint}"}
+
+    # Service account to connect to MySQL
+    variable service_account_name {type = "string"}
+    variable role {type = "string"}
+
+    resource "google_service_account" "account" {
+      account_id = "${var.service_account_name}"
+      display_name = "${var.service_account_name}"
+    }
+
+    resource "google_service_account_key" "key" {
+      service_account_id = "${google_service_account.account.name}"
+    }
+
+    resource "google_project_iam_member" "member" {
+      role   = "roles/${var.role}"
+      member = "serviceAccount:${google_service_account.account.email}"
+    }
+
+    output Name {value = "${google_service_account.account.display_name}"}
+    output Email {value = "${google_service_account.account.email}"}
+    output PrivateKeyData {value = "${google_service_account_key.key.private_key}"}
+    output ProjectId {value = "${google_service_account.account.project}"}
+    output UniqueId {value = "${google_service_account.account.unique_id}"}
+
+    # Username and password on the database instance
+    variable password {type = "string"}
+    variable username {type = "string"}
+
+    resource "google_sql_user" "user" {
+      name     = "${var.username}"
+      instance = "${var.instance_name}"
+      password = "${var.password}"
+    }
+
+    output Username {value = "${var.username}"}
+    output Password {value = "${var.password}"}
+
+    variable database_name {type = "string"}
+    variable host {type = "string"}
+    output uri {value = "mysql://${urlencode(var.username)}:${urlencode(var.password)}@${urlencode(var.host)}/${urlencode(var.database_name)}?ssl_mode=required"}
+  outputs:
+  - required: true
+    field_name: Email
+    type: string
+    details: Email address of the service account.
+    constraints:
+      examples:
+      - pcf-binding-ex312029@my-project.iam.gserviceaccount.com
+      pattern: ^pcf-binding-[a-z0-9-]+@.+\.gserviceaccount\.com$
+  - required: true
+    field_name: Name
+    type: string
+    details: The name of the service account.
+    constraints:
+      examples:
+      - pcf-binding-ex312029
+  - required: true
+    field_name: PrivateKeyData
+    type: string
+    details: Service account private key data. Base64 encoded JSON.
+    constraints:
+      minLength: 512
+      pattern: ^[A-Za-z0-9+/]*=*$
+  - required: true
+    field_name: ProjectId
+    type: string
+    details: ID of the project that owns the service account.
+    constraints:
+      examples:
+      - my-project
+      maxLength: 30
+      minLength: 6
+      pattern: ^[a-z0-9-]+$
+  - required: true
+    field_name: UniqueId
+    type: string
+    details: Unique and stable ID of the service account.
+    constraints:
+      examples:
+      - "112447814736626230844"
+  - required: true
+    field_name: CaCert
+    type: string
+    details: The server Certificate Authority's certificate.
+    constraints:
+      examples:
+      - '-----BEGIN CERTIFICATE-----BASE64 Certificate Text-----END CERTIFICATE-----'
+  - required: true
+    field_name: ClientCert
+    type: string
+    details: The client certificate. For First Generation instances, the new certificate
+      does not take effect until the instance is restarted.
+    constraints:
+      examples:
+      - '-----BEGIN CERTIFICATE-----BASE64 Certificate Text-----END CERTIFICATE-----'
+  - required: true
+    field_name: ClientKey
+    type: string
+    details: The client certificate key.
+    constraints:
+      examples:
+      - '-----BEGIN RSA PRIVATE KEY-----BASE64 Key Text-----END RSA PRIVATE KEY-----'
+  - required: true
+    field_name: Sha1Fingerprint
+    type: string
+    details: The SHA1 fingerprint of the client certificate.
+    constraints:
+      examples:
+      - e6d0c68f35032c6c2132217d1f1fb06b12ed32e2
+      pattern: ^[0-9a-f]{40}$
+  - required: true
+    field_name: Username
+    type: string
+    details: The name of the SQL user provisioned.
+    constraints:
+      examples:
+      - sb15404128767777
+  - required: true
+    field_name: Password
+    type: string
+    details: The database password for the SQL user.
+    constraints:
+      examples:
+      - N-JPz7h2RHPZ81jB5gDHdnluddnIFMWG4nd5rKjR_8A=
+  - required: true
+    field_name: uri
+    type: string
+    details: A database connection string.
+    constraints:
+      examples:
+      - mysql://user:pass@127.0.0.1/pcf-sb-2-1540412407295372465?ssl_mode=required
+examples:
+- name: High Availability
+  description: A high-availability instance with a failover replcia.
+  plan_id: 2e5bf7ba-a724-458e-beeb-9328d7024540
+  provision_params:
+    disk_size: 15
+    tier: db-n1-standard-4
+    disk_autoresize: true
+- name: Development Sandbox
+  description: An inexpensive MySQL sandbox for developing with no backups.
+  plan_id: 485b1696-7587-4e21-aecc-786367340839
+  provision_params:
+    backups_enabled: false
+    binlog: false
+    disk_size: 10
+    tier: db-f1-micro
+  bind_params:
+    role: cloudsql.editor
+- name: Authorized networks example
+  description: An example using authorized networks.
+  plan_id: 485b1696-7587-4e21-aecc-786367340839
+  provision_params:
+    backups_enabled: false
+    binlog: false
+    authorized_networks: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+    tier: db-f1-micro
+  bind_params:
+    role: cloudsql.editor

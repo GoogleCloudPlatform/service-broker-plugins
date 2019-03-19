@@ -43,3 +43,4 @@ service_definitions:
 - services/google-stackdriver.yml
 - services/google-storage.yml
 - services/google-pubsub-topic.yml
+- services/google-cloud-mysql.yml
