@@ -27,8 +27,11 @@ terraform_binaries:
   version: 0.11.9
   source: https://github.com/hashicorp/terraform/archive/v0.11.9.zip
 - name: terraform-provider-google
-  version: 1.19.0
-  source: https://github.com/terraform-providers/terraform-provider-google/archive/v1.19.0.zip
+  version: 1.20.0
+  source: https://github.com/terraform-providers/terraform-provider-google/archive/v1.20.0.zip
+- name: terraform-provider-null
+  version: 2.1.0
+  source: https://github.com/terraform-providers/terraform-provider-null/archive/v2.1.0.zip
 service_definitions:
 - services/google-bigquery.yml
 - services/google-bigtable.yml
@@ -45,4 +48,4 @@ service_definitions:
 - services/google-stackdriver.yml
 - services/google-storage.yml
 - services/google-pubsub-topic.yml
-- services/google-cloud-mysql.yml
+- services/google-cloudsql-mysql.yml
