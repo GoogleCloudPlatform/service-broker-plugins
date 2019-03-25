@@ -21,7 +21,7 @@ display_name: Google Cloud IAM
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/iam.svg
 documentation_url: https://cloud.google.com/iam/docs/
 support_url: https://cloud.google.com/iam/docs/getting-support
-tags: [gcp, iam, preview]
+tags: [gcp, iam]
 plans:
 - name: cloudasset-viewer
   id: 45ad248c-d651-43e3-b7db-a185cd38c515

@@ -13,7 +13,7 @@
 # limitations under the License.
 ---
 version: 1
-name: google-pubsub-topic
+name: google-pubsub-topic-v1
 id: b9a027e1-a938-4a38-a61a-ab97ff26a814
 description: |
   Creates a Pub/Sub topic on provision. Bindings get an account with access to

@@ -20,7 +20,7 @@ display_name: Google Machine Learning APIs
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/machine-learning.svg
 documentation_url: https://cloud.google.com/ml/
 support_url: https://cloud.google.com/support/
-tags: [gcp, ml, preview]
+tags: [gcp, ml]
 plans:
 - name: default
   id: 1ea54197-9462-42f3-af7a-2c9fe67682e7

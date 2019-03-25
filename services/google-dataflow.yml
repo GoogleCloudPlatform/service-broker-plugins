@@ -20,7 +20,7 @@ display_name: Google Cloud Dataflow
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/dataflow.svg
 documentation_url: https://cloud.google.com/dataflow/docs/
 support_url: https://cloud.google.com/dataflow/docs/support
-tags: [gcp, dataflow, preview]
+tags: [gcp, dataflow]
 plans:
 - name: default
   id: 22bad5d4-0da5-4fab-b8fd-2f6790132892

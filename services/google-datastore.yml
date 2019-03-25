@@ -20,7 +20,7 @@ display_name: Google Cloud Datastore
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/datastore.svg
 documentation_url: https://cloud.google.com/datastore/docs/
 support_url: https://cloud.google.com/datastore/docs/getting-support
-tags: [gcp, datastore, preview]
+tags: [gcp, datastore]
 plans:
 - name: default
   id: 45ad248c-d651-43e3-b7db-a185cd38c515
