@@ -15,8 +15,7 @@
 version: 1
 name: google-ml-apis-v2
 id: e676602c-1e7f-46d4-8b20-509f7f4ae0e4
-description: Machine Learning APIs including Vision, Translate, Speech, and Natural
-  Language.
+description: Machine learning APIs for Vision, Translates, Speech, and NLP.
 display_name: Google Machine Learning APIs
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/machine-learning.svg
 documentation_url: https://cloud.google.com/ml/

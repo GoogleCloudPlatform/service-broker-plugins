@@ -15,9 +15,7 @@
 version: 1
 name: google-dialogflow-v2
 id: b6cc9a8c-05da-4d47-a7df-fe4d9ee38c4e
-description: Dialogflow is an end-to-end, build-once deploy-everywhere development
-  suite for creating conversational interfaces for websites, mobile applications,
-  popular messaging platforms, and IoT devices.
+description: A managed service for building conversational interfaces.
 display_name: Google Cloud Dialogflow
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/dialogflow-enterprise.svg
 documentation_url: https://cloud.google.com/dialogflow-enterprise/docs/

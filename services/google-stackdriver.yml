@@ -15,12 +15,7 @@
 version: 1
 name: google-stackdriver-v2
 id: 29802e73-b8b3-441d-99b5-bea3492cf2cf
-description: |
-  Stackdriver aggregates metrics, logs, and events from infrastructure, giving
-  developers and operators a rich set of observable signals that speed
-  root-cause analysis and reduce mean time to resolution (MTTR). Stackdriver
-  doesn’t require extensive integration or multiple "panes of glass," and it
-  won’t lock developers into using a particular cloud provider.
+description: A metric, logs, and event collection and analysis stack.
 display_name: Stackdriver
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/stackdriver.svg
 documentation_url: https://cloud.google.com/stackdriver/docs/

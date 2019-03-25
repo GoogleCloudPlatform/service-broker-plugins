@@ -15,7 +15,7 @@
 version: 1
 name: google-datastore-v2
 id: 34ea74c8-b281-46fa-9552-a993944a456b
-description: Google Cloud Datastore is a NoSQL document database service.
+description: A NoSQL document database service.
 display_name: Google Cloud Datastore
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/datastore.svg
 documentation_url: https://cloud.google.com/datastore/docs/

@@ -15,8 +15,7 @@
 version: 1
 name: google-spanner-v2
 id: 2aa933e6-8835-4545-a65e-eaabb29eaa74
-description: The first horizontally scalable, globally consistent, relational database
-  service.
+description: A globally distributed relational database.
 display_name: Google Spanner
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/spanner.svg
 documentation_url: https://cloud.google.com/spanner/
