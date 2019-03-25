@@ -15,8 +15,7 @@
 version: 1
 name: google-bigtable-v2
 id: 83400d20-3759-494d-af9f-ec018633eafe
-description: A high performance NoSQL database service for large analytical and operational
-  workloads.
+description: A NoSQL database service for large analytical and operational workloads.
 display_name: Google Bigtable
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/bigtable.svg
 documentation_url: https://cloud.google.com/bigtable/

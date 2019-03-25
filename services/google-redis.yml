@@ -15,8 +15,7 @@
 version: 1
 name: google-redis
 id: 0e86ad78-99b3-48b6-a986-b594e7995fd6
-description: Cloud Memorystore for Redis is a fully managed Redis service for the
-  Google Cloud Platform.
+description: A fully managed in-memory data store service for Redis.
 display_name: Google Cloud Memorystore for Redis
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/cache.svg
 documentation_url: https://cloud.google.com/memorystore/docs/redis/

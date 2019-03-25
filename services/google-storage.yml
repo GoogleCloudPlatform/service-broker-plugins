@@ -15,8 +15,7 @@
 version: 1
 name: google-storage-v2
 id: b9e4332e-b42b-4680-bda5-ea1506797474
-description: Unified object storage for developers and enterprises. Cloud Storage
-  allows world-wide storage and retrieval of any amount of data at any time.
+description: Unified object storage, from live applications data to cloud archival.
 display_name: Google Cloud Storage
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/storage.svg
 documentation_url: https://cloud.google.com/storage/docs/overview

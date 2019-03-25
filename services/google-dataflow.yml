@@ -15,8 +15,7 @@
 version: 1
 name: google-dataflow-v2
 id: f0a7c435-3cb6-4f65-93f2-bd528e13ca9c
-description: A managed service for executing a wide variety of data processing patterns
-  built on Apache Beam.
+description: A managed Apache Beam service.
 display_name: Google Cloud Dataflow
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/dataflow.svg
 documentation_url: https://cloud.google.com/dataflow/docs/

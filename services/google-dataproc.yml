@@ -15,7 +15,7 @@
 version: 1
 name: google-dataproc
 id: ebb35d15-8c7a-4c4e-8aa8-d8d751a9d8d3
-description: Dataproc is a fully-managed service for running Apache Spark and Apache Hadoop clusters in a simpler, more cost-efficient way.
+description: Managed Apache Spark and Hadoop clusters.
 display_name: Google Cloud Dataproc
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/dataproc.svg
 documentation_url: https://cloud.google.com/dataproc/docs/overview
