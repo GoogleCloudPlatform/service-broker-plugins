@@ -20,7 +20,7 @@ display_name: Google Cloud Firestore
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/firestore.svg
 documentation_url: https://cloud.google.com/firestore/docs/
 support_url: https://cloud.google.com/firestore/docs/getting-support
-tags: [gcp, firestore, beta, preview]
+tags: [gcp, firestore, beta]
 plans:
 - name: default
   id: 5aa2796d-38cd-4fcc-bc77-778f34d9150e

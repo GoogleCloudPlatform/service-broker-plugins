@@ -13,14 +13,14 @@
 # limitations under the License.
 ---
 version: 1
-name: google-redis
+name: google-redis-v1
 id: 0e86ad78-99b3-48b6-a986-b594e7995fd6
 description: A fully managed in-memory data store service for Redis.
 display_name: Google Cloud Memorystore for Redis
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/cache.svg
 documentation_url: https://cloud.google.com/memorystore/docs/redis/
 support_url: https://cloud.google.com/support/
-tags: [gcp, redis, preview]
+tags: [gcp, redis]
 plans:
 - name: basic
   id: 6ed44104-8777-4b57-8c03-826b3af7d0be

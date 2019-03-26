@@ -20,7 +20,7 @@ display_name: Stackdriver
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/stackdriver.svg
 documentation_url: https://cloud.google.com/stackdriver/docs/
 support_url: https://cloud.google.com/stackdriver/docs/getting-support
-tags: [gcp, stackdriver, preview]
+tags: [gcp, stackdriver]
 plans:
 - name: apm-trace-agent
   id: ab368bf8-085b-43d4-90d3-f4bec1c1d14e
