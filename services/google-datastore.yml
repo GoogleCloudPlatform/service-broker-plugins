@@ -56,7 +56,7 @@ bind:
   user_inputs: []
   computed_inputs:
   - name: service_account_name
-    default: ${str.truncate(20, "pcf-binding-${request.binding_id}")}
+    default: ${str.truncate(20, "gsb-binding-${request.binding_id}")}
     overwrite: true
     type: string
   template: |
@@ -88,15 +88,15 @@ bind:
     details: Email address of the service account.
     constraints:
       examples:
-      - pcf-binding-ex312029@my-project.iam.gserviceaccount.com
-      pattern: ^pcf-binding-[a-z0-9-]+@.+\.gserviceaccount\.com$
+      - gsb-binding-ex312029@my-project.iam.gserviceaccount.com
+      pattern: ^gsb-binding-[a-z0-9-]+@.+\.gserviceaccount\.com$
   - required: true
     field_name: Name
     type: string
     details: The name of the service account.
     constraints:
       examples:
-      - pcf-binding-ex312029
+      - gsb-binding-ex312029
   - required: true
     field_name: PrivateKeyData
     type: string
