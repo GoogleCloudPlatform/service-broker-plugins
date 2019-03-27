@@ -50,7 +50,7 @@ provision:
   - field_name: name
     type: string
     details: The name of the cluster.
-    default: pcf-sb-${counter.next()}-${time.nano()}
+    default: gsb-${counter.next()}-${time.nano()}
     constraints:
       maxLength: 222
       minLength: 3
@@ -134,7 +134,7 @@ bind:
   user_inputs: []
   computed_inputs:
   - name: service_account_name
-    default: ${str.truncate(20, "pcf-binding-${request.binding_id}")}
+    default: ${str.truncate(20, "gsb-binding-${request.binding_id}")}
     overwrite: true
   - name: bucket
     default: ${instance.details["bucket_name"]}
@@ -175,15 +175,15 @@ bind:
     details: Email address of the service account.
     constraints:
       examples:
-      - pcf-binding-ex312029@my-project.iam.gserviceaccount.com
-      pattern: ^pcf-binding-[a-z0-9-]+@.+\.gserviceaccount\.com$
+      - gsb-binding-ex312029@my-project.iam.gserviceaccount.com
+      pattern: ^gsb-binding-[a-z0-9-]+@.+\.gserviceaccount\.com$
   - required: true
     field_name: name
     type: string
     details: The name of the service account.
     constraints:
       examples:
-      - pcf-binding-ex312029
+      - gsb-binding-ex312029
   - required: true
     field_name: private_key
     type: string
