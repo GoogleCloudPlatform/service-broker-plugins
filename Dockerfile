@@ -12,20 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Initialize a new build stage and set the base image as the gcp-service-broker
-# Note that there is an executable at /bin/gcp-service-broker
-FROM gcr.io/gcp-service-broker/gcp-service-broker:master AS build
+FROM gcr.io/gcp-service-broker/gcp-service-broker:master AS pak-builder
 
-# Copy local service-broker-plugins repository to docker image
-COPY . ./service-broker-plugins/
+COPY . /service-broker-plugins/
 
-# Use the gcp-service-broker binary to build the brokerpak
-RUN /bin/gcp-service-broker pak build service-broker-plugins
+WORKDIR /tmp
+WORKDIR /
 
-FROM scratch
-COPY --from=build /src /src
-COPY --from=build /bin/gcp-service-broker /bin/gcp-service-broker
-COPY --from=build /service-broker-plugins/google-cloud-services-1.brokerpak /usr/share/gcp-service-broker/builtin-brokerpaks/google-cloud-services-1.brokerpak
+RUN ["/bin/gcp-service-broker", "pak", "build", "/service-broker-plugins"]
+
+FROM gcr.io/gcp-service-broker/gcp-service-broker:master
+COPY --from=pak-builder /*.brokerpak /usr/share/gcp-service-broker/builtin-brokerpaks/
 
 ENTRYPOINT ["/bin/gcp-service-broker"]
 CMD ["help"]
