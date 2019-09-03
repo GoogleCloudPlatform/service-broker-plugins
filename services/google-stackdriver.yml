@@ -80,35 +80,57 @@ bind:
     overwrite: true
     type: string
   template: |
-    variable service_account_name {type = "string"}
-    variable roles {type = "string"}
+    variable "service_account_name" {
+      type = string
+    }
+
+    variable "roles" {
+      type = string
+    }
 
     locals {
-      role_list = "${split(",", var.roles)}"
+      role_list = split(",", var.roles)
     }
 
     resource "google_service_account" "account" {
-      account_id = "${var.service_account_name}"
-      display_name = "${var.service_account_name}"
+      account_id   = var.service_account_name
+      display_name = var.service_account_name
     }
 
     resource "google_service_account_key" "key" {
-      service_account_id = "${google_service_account.account.name}"
+      service_account_id = google_service_account.account.name
     }
 
     resource "google_project_iam_member" "member" {
-      count  = "${length(local.role_list)}"
+      count = length(local.role_list)
 
-      role   = "${local.role_list[count.index]}"
+      role   = local.role_list[count.index]
       member = "serviceAccount:${google_service_account.account.email}"
     }
 
-    output Email {value = "${google_service_account.account.email}"}
-    output Name {value = "${google_service_account.account.display_name}"}
-    output PrivateKeyData {value = "${google_service_account_key.key.private_key}"}
-    output ProjectId {value = "${google_service_account.account.project}"}
-    output UniqueId {value = "${google_service_account.account.unique_id}"}
-    output Roles {value = "${var.roles}"}
+    output "Email" {
+      value = google_service_account.account.email
+    }
+
+    output "Name" {
+      value = google_service_account.account.display_name
+    }
+
+    output "PrivateKeyData" {
+      value = google_service_account_key.key.private_key
+    }
+
+    output "ProjectId" {
+      value = google_service_account.account.project
+    }
+
+    output "UniqueId" {
+      value = google_service_account.account.unique_id
+    }
+
+    output "Roles" {
+      value = var.roles
+    }
   outputs:
   - required: true
     field_name: Email

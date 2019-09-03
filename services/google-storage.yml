@@ -94,19 +94,32 @@ provision:
     overwrite: true
     type: object
   template: |+
-    variable labels { type = "map" }
-    variable location {type = "string"}
-    variable name {type = "string"}
-    variable storage_class {type = "string"}
-
-    resource "google_storage_bucket" "instance" {
-      name = "${var.name}"
-      location = "${var.location}"
-      storage_class = "${var.storage_class}"
-      labels = "${var.labels}"
+    variable "labels" {
+      type = map(string)
     }
 
-    output bucket_name {value = "${google_storage_bucket.instance.name}"}
+    variable "location" {
+      type = string
+    }
+
+    variable "name" {
+      type = string
+    }
+
+    variable "storage_class" {
+      type = string
+    }
+
+    resource "google_storage_bucket" "instance" {
+      name          = var.name
+      location      = var.location
+      storage_class = var.storage_class
+      labels        = var.labels
+    }
+
+    output "bucket_name" {
+      value = google_storage_bucket.instance.name
+    }
   outputs:
   - required: true
     field_name: bucket_name
@@ -143,31 +156,56 @@ bind:
     overwrite: true
     type: "string"
   template: |
-    variable role {type = "string"}
-    variable service_account_display_name {type = "string"}
-    variable service_account_name {type = "string"}
-    variable bucket_name {type="string"}
+    variable "role" {
+      type = string
+    }
+
+    variable "service_account_display_name" {
+      type = string
+    }
+
+    variable "service_account_name" {
+      type = string
+    }
+
+    variable "bucket_name" {
+      type = string
+    }
 
     resource "google_service_account" "account" {
-      account_id = "${var.service_account_name}"
-      display_name = "${var.service_account_name}"
+      account_id   = var.service_account_name
+      display_name = var.service_account_name
     }
 
     resource "google_service_account_key" "key" {
-      service_account_id = "${google_service_account.account.name}"
+      service_account_id = google_service_account.account.name
     }
 
     resource "google_storage_bucket_iam_member" "instance" {
-      bucket  = "${var.bucket_name}"
-      role    = "roles/${var.role}"
-      member  = "serviceAccount:${google_service_account.account.email}"
+      bucket = var.bucket_name
+      role   = "roles/${var.role}"
+      member = "serviceAccount:${google_service_account.account.email}"
     }
 
-    output Email {value = "${google_service_account.account.email}"}
-    output Name {value = "${google_service_account.account.display_name}"}
-    output PrivateKeyData {value = "${google_service_account_key.key.private_key}"}
-    output ProjectId {value = "${google_service_account.account.project}"}
-    output UniqueId {value = "${google_service_account.account.unique_id}"}
+    output "Email" {
+      value = google_service_account.account.email
+    }
+
+    output "Name" {
+      value = google_service_account.account.display_name
+    }
+
+    output "PrivateKeyData" {
+      value = google_service_account_key.key.private_key
+    }
+
+    output "ProjectId" {
+      value = google_service_account.account.project
+    }
+
+    output "UniqueId" {
+      value = google_service_account.account.unique_id
+    }
   outputs:
   - required: true
     field_name: Email

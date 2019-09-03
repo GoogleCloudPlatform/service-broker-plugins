@@ -42,8 +42,13 @@ provision:
       pattern: ^[A-Za-z0-9_-]*$
   computed_inputs: []
   template: |-
-    variable namespace {type = "string"}
-    output namespace {value = "${var.namespace}"}
+    variable "namespace" {
+      type = string
+    }
+
+    output "namespace" {
+      value = var.namespace
+    }
   outputs:
   - field_name: namespace
     type: string
@@ -60,15 +65,17 @@ bind:
     overwrite: true
     type: string
   template: |
-    variable service_account_name {type = "string"}
+    variable "service_account_name" {
+      type = string
+    }
 
     resource "google_service_account" "account" {
-      account_id = "${var.service_account_name}"
-      display_name = "${var.service_account_name}"
+      account_id   = var.service_account_name
+      display_name = var.service_account_name
     }
 
     resource "google_service_account_key" "key" {
-      service_account_id = "${google_service_account.account.name}"
+      service_account_id = google_service_account.account.name
     }
 
     resource "google_project_iam_member" "member" {
@@ -76,11 +83,25 @@ bind:
       member = "serviceAccount:${google_service_account.account.email}"
     }
 
-    output Email {value = "${google_service_account.account.email}"}
-    output Name {value = "${google_service_account.account.display_name}"}
-    output PrivateKeyData {value = "${google_service_account_key.key.private_key}"}
-    output ProjectId {value = "${google_service_account.account.project}"}
-    output UniqueId {value = "${google_service_account.account.unique_id}"}
+    output "Email" {
+      value = google_service_account.account.email
+    }
+
+    output "Name" {
+      value = google_service_account.account.display_name
+    }
+
+    output "PrivateKeyData" {
+      value = google_service_account_key.key.private_key
+    }
+
+    output "ProjectId" {
+      value = google_service_account.account.project
+    }
+
+    output "UniqueId" {
+      value = google_service_account.account.unique_id
+    }
   outputs:
   - required: true
     field_name: Email

@@ -82,21 +82,37 @@ provision:
     overwrite: true
     type: object
   template: |+
-    variable display_name {type = "string"}
-    variable labels {type = "map"}
-    variable location {type = "string"}
-    variable name {type = "string"}
-    variable num_nodes {type = "string"}
-
-    resource "google_spanner_instance" "instance" {
-      name = "${var.name}"
-      config = "${var.location}"
-      display_name = "${var.display_name}"
-      num_nodes = "${var.num_nodes}"
-      labels = "${var.labels}"
+    variable "display_name" {
+      type = string
     }
 
-    output instance_id {value = "${google_spanner_instance.instance.name}"}
+    variable "labels" {
+      type = map(string)
+    }
+
+    variable "location" {
+      type = string
+    }
+
+    variable "name" {
+      type = string
+    }
+
+    variable "num_nodes" {
+      type = string
+    }
+
+    resource "google_spanner_instance" "instance" {
+      name         = var.name
+      config       = var.location
+      display_name = var.display_name
+      num_nodes    = var.num_nodes
+      labels       = var.labels
+    }
+
+    output "instance_id" {
+      value = google_spanner_instance.instance.name
+    }
   outputs:
   - required: true
     field_name: instance_id
@@ -131,31 +147,56 @@ bind:
     default: ${instance.details["instance_id"]}
     overwrite: true
   template: |
-    variable role {type = "string"}
-    variable service_account_display_name {type = "string"}
-    variable service_account_name {type = "string"}
-    variable instance_id {type = "string"}
+    variable "role" {
+      type = string
+    }
+
+    variable "service_account_display_name" {
+      type = string
+    }
+
+    variable "service_account_name" {
+      type = string
+    }
+
+    variable "instance_id" {
+      type = string
+    }
 
     resource "google_service_account" "account" {
-      account_id = "${var.service_account_name}"
-      display_name = "${var.service_account_name}"
+      account_id   = var.service_account_name
+      display_name = var.service_account_name
     }
 
     resource "google_service_account_key" "key" {
-      service_account_id = "${google_service_account.account.name}"
+      service_account_id = google_service_account.account.name
     }
 
     resource "google_spanner_instance_iam_member" "instance" {
-      instance  = "${var.instance_id}"
-      role      = "roles/${var.role}"
-      member    = "serviceAccount:${google_service_account.account.email}"
+      instance = var.instance_id
+      role     = "roles/${var.role}"
+      member   = "serviceAccount:${google_service_account.account.email}"
     }
 
-    output Email {value = "${google_service_account.account.email}"}
-    output Name {value = "${google_service_account.account.display_name}"}
-    output PrivateKeyData {value = "${google_service_account_key.key.private_key}"}
-    output ProjectId {value = "${google_service_account.account.project}"}
-    output UniqueId {value = "${google_service_account.account.unique_id}"}
+    output "Email" {
+      value = google_service_account.account.email
+    }
+
+    output "Name" {
+      value = google_service_account.account.display_name
+    }
+
+    output "PrivateKeyData" {
+      value = google_service_account_key.key.private_key
+    }
+
+    output "ProjectId" {
+      value = google_service_account.account.project
+    }
+
+    output "UniqueId" {
+      value = google_service_account.account.unique_id
+    }
   outputs:
   - required: true
     field_name: Email

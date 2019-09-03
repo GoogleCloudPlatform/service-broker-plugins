@@ -163,93 +163,139 @@ provision:
     type: object
     overwrite: true
   template: |+
-    variable failover_enabled {type = "string"}
-    variable instance_name {type = "string"}
-    variable database_version {type = "string"}
-    variable region {type = "string"}
-    variable tier {type = "string"}
-    variable disk_size {type = "string"}
-    variable disk_autoresize {type = "string"}
-    variable disk_type {type = "string"}
-    variable maintenance_window_day {type = "string"}
-    variable maintenance_window_hour {type = "string"}
-    variable backup_enabled {type = "string"}
-    variable backup_start_time {type = "string"}
-    variable backup_binary_log_enabled {type = "string"}
-    variable authorized_networks {type = "string"}
-    variable replication_type {type = "string"}
+    variable "failover_enabled" {
+      type = string
+    }
 
-    variable labels {type = "map"}
-    variable database_name {type = "string"}
+    variable "instance_name" {
+      type = string
+    }
+
+    variable "database_version" {
+      type = string
+    }
+
+    variable "region" {
+      type = string
+    }
+
+    variable "tier" {
+      type = string
+    }
+
+    variable "disk_size" {
+      type = string
+    }
+
+    variable "disk_autoresize" {
+      type = string
+    }
+
+    variable "disk_type" {
+      type = string
+    }
+
+    variable "maintenance_window_day" {
+      type = string
+    }
+
+    variable "maintenance_window_hour" {
+      type = string
+    }
+
+    variable "backup_enabled" {
+      type = string
+    }
+
+    variable "backup_start_time" {
+      type = string
+    }
+
+    variable "backup_binary_log_enabled" {
+      type = string
+    }
+
+    variable "authorized_networks" {
+      type = string
+    }
+
+    variable "replication_type" {
+      type = string
+    }
+
+    variable "labels" {
+      type = map(string)
+    }
+
+    variable "database_name" {
+      type = string
+    }
 
     locals {
-      authorized_networks_list = "${split(",", var.authorized_networks)}"
+      authorized_networks_list = split(",", var.authorized_networks)
     }
 
     data "null_data_source" "allowed_networks" {
-      count  = "${length(local.authorized_networks_list)}"
+      count = length(local.authorized_networks_list)
 
       inputs = {
-        value = "${local.authorized_networks_list[count.index]}"
+        value = local.authorized_networks_list[count.index]
       }
     }
 
-
     resource "google_sql_database_instance" "master" {
-      database_version  = "${var.database_version}"
-      name              = "${var.instance_name}"
-      region            = "${var.region}"
+      database_version = var.database_version
+      name             = var.instance_name
+      region           = var.region
 
       settings {
-        tier              = "${var.tier}"
-        disk_autoresize   = "${var.disk_autoresize}"
-        disk_size         = "${var.disk_size}"
-        disk_type         = "${var.disk_type}"
-        replication_type  = "${var.replication_type}"
-        user_labels       = "${var.labels}"
+        tier             = var.tier
+        disk_autoresize  = var.disk_autoresize
+        disk_size        = var.disk_size
+        disk_type        = var.disk_type
+        replication_type = var.replication_type
+        user_labels      = var.labels
 
         backup_configuration {
-          binary_log_enabled  = "${var.backup_binary_log_enabled}"
-          enabled             = "${var.backup_enabled}"
-          start_time          = "${var.backup_start_time}"
+          binary_log_enabled = var.backup_binary_log_enabled
+          enabled            = var.backup_enabled
+          start_time         = var.backup_start_time
         }
 
         ip_configuration {
-          ipv4_enabled  = "true"
-          require_ssl   = "true"
-
+          ipv4_enabled = "true"
+          require_ssl  = "true"
           # authorized_networks = [
           #   "${data.null_data_source.allowed_networks.*.outputs}",
           # ]
         }
 
         maintenance_window {
-          day   = "${var.maintenance_window_day}"
-          hour  = "${var.maintenance_window_hour}"
+          day  = var.maintenance_window_day
+          hour = var.maintenance_window_hour
         }
       }
     }
 
     resource "google_sql_database_instance" "failover" {
-      count = "${var.failover_enabled == "true" ? 1 : 0}"
+      count = var.failover_enabled == "true" ? 1 : 0
 
-      database_version  = "${var.database_version}"
-      name              = "${var.instance_name}-failover"
-      region            = "${var.region}"
+      database_version = var.database_version
+      name             = "${var.instance_name}-failover"
+      region           = var.region
 
-      master_instance_name = "${google_sql_database_instance.master.name}"
+      master_instance_name = google_sql_database_instance.master.name
 
       settings {
-        tier              = "${var.tier}"
-        disk_autoresize   = "${var.disk_autoresize}"
-        disk_size         = "${var.disk_size}"
-        disk_type         = "${var.disk_type}"
-        user_labels       = "${var.labels}"
+        tier            = var.tier
+        disk_autoresize = var.disk_autoresize
+        disk_size       = var.disk_size
+        disk_type       = var.disk_type
+        user_labels     = var.labels
 
         ip_configuration {
-          ipv4_enabled  = "true"
-          require_ssl   = "true"
-
+          ipv4_enabled = "true"
+          require_ssl  = "true"
           # authorized_networks = [
           #   "${data.null_data_source.allowed_networks.*.outputs}",
           # ]
@@ -257,18 +303,26 @@ provision:
       }
 
       replica_configuration {
-        failover_target      = "true"
+        failover_target = "true"
       }
     }
 
     resource "google_sql_database" "db" {
-      name      = "${var.database_name}"
-      instance  = "${google_sql_database_instance.master.name}"
+      name     = var.database_name
+      instance = google_sql_database_instance.master.name
     }
 
-    output database_name {value = "${var.database_name}"}
-    output host {value = "${google_sql_database_instance.master.first_ip_address}"}
-    output instance_name {value = "${var.instance_name}"}
+    output "database_name" {
+      value = var.database_name
+    }
+
+    output "host" {
+      value = google_sql_database_instance.master.first_ip_address
+    }
+
+    output "instance_name" {
+      value = var.instance_name
+    }
   outputs:
   - required: true
     field_name: database_name
@@ -345,30 +399,51 @@ bind:
     type: "string"
   template: |
     # SSL cert to connect through the MySQL proxy
-    variable certname {type = "string"}
-    variable instance_name {type = "string"}
-
-    resource "google_sql_ssl_cert" "client_cert" {
-      common_name = "${var.certname}"
-      instance    = "${var.instance_name}"
+    variable "certname" {
+      type = string
     }
 
-    output CaCert {value = "${google_sql_ssl_cert.client_cert.server_ca_cert}"}
-    output ClientCert {value = "${google_sql_ssl_cert.client_cert.cert}"}
-    output ClientKey {value = "${google_sql_ssl_cert.client_cert.private_key}"}
-    output Sha1Fingerprint {value = "${google_sql_ssl_cert.client_cert.sha1_fingerprint}"}
+    variable "instance_name" {
+      type = string
+    }
+
+    resource "google_sql_ssl_cert" "client_cert" {
+      common_name = var.certname
+      instance    = var.instance_name
+    }
+
+    output "CaCert" {
+      value = google_sql_ssl_cert.client_cert.server_ca_cert
+    }
+
+    output "ClientCert" {
+      value = google_sql_ssl_cert.client_cert.cert
+    }
+
+    output "ClientKey" {
+      value = google_sql_ssl_cert.client_cert.private_key
+    }
+
+    output "Sha1Fingerprint" {
+      value = google_sql_ssl_cert.client_cert.sha1_fingerprint
+    }
 
     # Service account to connect to MySQL
-    variable service_account_name {type = "string"}
-    variable role {type = "string"}
+    variable "service_account_name" {
+      type = string
+    }
+
+    variable "role" {
+      type = string
+    }
 
     resource "google_service_account" "account" {
-      account_id = "${var.service_account_name}"
-      display_name = "${var.service_account_name}"
+      account_id   = var.service_account_name
+      display_name = var.service_account_name
     }
 
     resource "google_service_account_key" "key" {
-      service_account_id = "${google_service_account.account.name}"
+      service_account_id = google_service_account.account.name
     }
 
     resource "google_project_iam_member" "member" {
@@ -376,28 +451,60 @@ bind:
       member = "serviceAccount:${google_service_account.account.email}"
     }
 
-    output Name {value = "${google_service_account.account.display_name}"}
-    output Email {value = "${google_service_account.account.email}"}
-    output PrivateKeyData {value = "${google_service_account_key.key.private_key}"}
-    output ProjectId {value = "${google_service_account.account.project}"}
-    output UniqueId {value = "${google_service_account.account.unique_id}"}
-
-    # Username and password on the database instance
-    variable password {type = "string"}
-    variable username {type = "string"}
-
-    resource "google_sql_user" "user" {
-      name     = "${var.username}"
-      instance = "${var.instance_name}"
-      password = "${var.password}"
+    output "Name" {
+      value = google_service_account.account.display_name
     }
 
-    output Username {value = "${var.username}"}
-    output Password {value = "${var.password}"}
+    output "Email" {
+      value = google_service_account.account.email
+    }
 
-    variable database_name {type = "string"}
-    variable host {type = "string"}
-    output uri {value = "mysql://${urlencode(var.username)}:${urlencode(var.password)}@${urlencode(var.host)}/${urlencode(var.database_name)}?ssl_mode=required"}
+    output "PrivateKeyData" {
+      value = google_service_account_key.key.private_key
+    }
+
+    output "ProjectId" {
+      value = google_service_account.account.project
+    }
+
+    output "UniqueId" {
+      value = google_service_account.account.unique_id
+    }
+
+    # Username and password on the database instance
+    variable "password" {
+      type = string
+    }
+
+    variable "username" {
+      type = string
+    }
+
+    resource "google_sql_user" "user" {
+      name     = var.username
+      instance = var.instance_name
+      password = var.password
+    }
+
+    output "Username" {
+      value = var.username
+    }
+
+    output "Password" {
+      value = var.password
+    }
+
+    variable "database_name" {
+      type = string
+    }
+
+    variable "host" {
+      type = string
+    }
+
+    output "uri" {
+      value = "mysql://${urlencode(var.username)}:${urlencode(var.password)}@${urlencode(var.host)}/${urlencode(var.database_name)}?ssl_mode=required"
+    }
   outputs:
   - required: true
     field_name: Email
