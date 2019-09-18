@@ -14,7 +14,7 @@
 ---
 packversion: 1
 name: google-cloud-services
-version: 0.1.0
+version: 0.1.1
 metadata:
   author: Google LLC
 platforms:
@@ -24,14 +24,14 @@ platforms:
   arch: amd64
 terraform_binaries:
 - name: terraform
-  version: 0.11.9
-  source: https://github.com/hashicorp/terraform/archive/v0.11.9.zip
+  version: 0.12.7
+  source: https://github.com/hashicorp/terraform/archive/v0.12.7.zip
 - name: terraform-provider-google
-  version: 1.20.0
-  source: https://github.com/terraform-providers/terraform-provider-google/archive/v1.20.0.zip
+  version: 2.14.0
+  source: https://github.com/terraform-providers/terraform-provider-google/archive/v2.14.0.zip
 - name: terraform-provider-null
-  version: 2.1.0
-  source: https://github.com/terraform-providers/terraform-provider-null/archive/v2.1.0.zip
+  version: 2.1.2
+  source: https://github.com/terraform-providers/terraform-provider-null/archive/v2.1.2.zip
 service_definitions:
 - services/google-bigquery.yml
 - services/google-bigtable.yml

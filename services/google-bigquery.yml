@@ -53,17 +53,27 @@ provision:
     overwrite: true
     type: "object"
   template: |+
-    variable labels {type = "map"}
-    variable location {type = "string"}
-    variable name {type = "string"}
-
-    resource "google_bigquery_dataset" "instance" {
-      dataset_id  = "${var.name}"
-      location    = "${var.location}"
-      labels      = "${var.labels}"
+    variable "labels" {
+      type = map(string)
     }
 
-    output dataset_id {value = "${google_bigquery_dataset.instance.dataset_id}"}
+    variable "location" {
+      type = string
+    }
+
+    variable "name" {
+      type = string
+    }
+
+    resource "google_bigquery_dataset" "instance" {
+      dataset_id = var.name
+      location   = var.location
+      labels     = var.labels
+    }
+
+    output "dataset_id" {
+      value = google_bigquery_dataset.instance.dataset_id
+    }
   outputs:
   - required: true
     field_name: dataset_id
@@ -97,29 +107,51 @@ bind:
     overwrite: true
     type: ""
   template: |
-    variable role {type = "string"}
-    variable service_account_display_name {type = "string"}
-    variable service_account_name {type = "string"}
+    variable "role" {
+      type = string
+    }
+
+    variable "service_account_display_name" {
+      type = string
+    }
+
+    variable "service_account_name" {
+      type = string
+    }
 
     resource "google_service_account" "account" {
-      account_id = "${var.service_account_name}"
-      display_name = "${var.service_account_name}"
+      account_id   = var.service_account_name
+      display_name = var.service_account_name
     }
 
     resource "google_service_account_key" "key" {
-      service_account_id = "${google_service_account.account.name}"
+      service_account_id = google_service_account.account.name
     }
 
     resource "google_project_iam_member" "instance" {
-      role    = "roles/${var.role}"
-      member  = "serviceAccount:${google_service_account.account.email}"
+      role   = "roles/${var.role}"
+      member = "serviceAccount:${google_service_account.account.email}"
     }
 
-    output Email {value = "${google_service_account.account.email}"}
-    output Name {value = "${google_service_account.account.display_name}"}
-    output PrivateKeyData {value = "${google_service_account_key.key.private_key}"}
-    output ProjectId {value = "${google_service_account.account.project}"}
-    output UniqueId {value = "${google_service_account.account.unique_id}"}
+    output "Email" {
+      value = google_service_account.account.email
+    }
+
+    output "Name" {
+      value = google_service_account.account.display_name
+    }
+
+    output "PrivateKeyData" {
+      value = google_service_account_key.key.private_key
+    }
+
+    output "ProjectId" {
+      value = google_service_account.account.project
+    }
+
+    output "UniqueId" {
+      value = google_service_account.account.unique_id
+    }
   outputs:
   - required: true
     field_name: Email

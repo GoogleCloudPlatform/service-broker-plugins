@@ -67,44 +67,62 @@ provision:
     type: object
     overwrite: true
   template: |+
-    variable ack_deadline {type = "string"}
-    variable endpoint {type = "string"}
-    variable labels {type = "map"}
-    variable subscription_name {type = "string"}
-    variable topic_name {type = "string"}
+    variable "ack_deadline" {
+      type = string
+    }
+
+    variable "endpoint" {
+      type = string
+    }
+
+    variable "labels" {
+      type = map(string)
+    }
+
+    variable "subscription_name" {
+      type = string
+    }
+
+    variable "topic_name" {
+      type = string
+    }
 
     resource "google_pubsub_topic" "default" {
-      name = "${var.topic_name}"
+      name = var.topic_name
       # TODO(josephlewis42): this isn't supported by Terraform at this time, but
       # it is implemented by Magic Modules and is just waiting for a release.
-      # labels = "${var.labels}"
+      # labels = var.labels
     }
 
     resource "google_pubsub_subscription" "nopush" {
-      count = "${(length(var.subscription_name) > 0 && length(var.endpoint) == 0) ? 1 : 0}"
+      count = length(var.subscription_name) > 0 && length(var.endpoint) == 0 ? 1 : 0
 
-      name  = "${var.subscription_name}"
-      topic = "${google_pubsub_topic.default.name}"
+      name  = var.subscription_name
+      topic = google_pubsub_topic.default.name
 
-      ack_deadline_seconds = "${var.ack_deadline}"
+      ack_deadline_seconds = var.ack_deadline
     }
 
     resource "google_pubsub_subscription" "push" {
-      count = "${(length(var.subscription_name) > 0 && length(var.endpoint) != 0) ? 1 : 0}"
+      count = length(var.subscription_name) > 0 && length(var.endpoint) != 0 ? 1 : 0
 
-      name  = "${var.subscription_name}"
-      topic = "${google_pubsub_topic.default.name}"
+      name  = var.subscription_name
+      topic = google_pubsub_topic.default.name
 
-      ack_deadline_seconds = "${var.ack_deadline}"
+      ack_deadline_seconds = var.ack_deadline
 
       push_config {
-        push_endpoint = "${var.endpoint}"
+        push_endpoint = var.endpoint
       }
     }
 
-    output subscription_name {value = "${var.subscription_name}"}
-    output topic_name {value = "${var.topic_name}"}
+    output "subscription_name" {
+      value = var.subscription_name
+    }
 
+    output "topic_name" {
+      value = var.topic_name
+    }
   outputs:
   - field_name: subscription_name
     type: string
@@ -138,39 +156,63 @@ bind:
     default: ${instance.details["subscription_name"]}
     overwrite: true
   template: |
-    variable service_account_display_name {type = "string"}
-    variable service_account_name {type = "string"}
-    variable subscription_name {type = "string"}
-    variable topic_name {type = "string"}
+    variable "service_account_display_name" {
+      type = string
+    }
+
+    variable "service_account_name" {
+      type = string
+    }
+
+    variable "subscription_name" {
+      type = string
+    }
+
+    variable "topic_name" {
+      type = string
+    }
 
     resource "google_service_account" "account" {
-      account_id = "${var.service_account_name}"
-      display_name = "${var.service_account_name}"
+      account_id   = var.service_account_name
+      display_name = var.service_account_name
     }
 
     resource "google_service_account_key" "key" {
-      service_account_id = "${google_service_account.account.name}"
+      service_account_id = google_service_account.account.name
     }
 
     resource "google_pubsub_topic_iam_member" "default" {
-      topic  = "${var.topic_name}"
+      topic  = var.topic_name
       role   = "roles/pubsub.editor"
       member = "serviceAccount:${google_service_account.account.email}"
     }
 
     resource "google_pubsub_subscription_iam_member" "default" {
-      count        = "${length(var.subscription_name) > 0 ? 1 : 0}"
-      subscription = "${var.subscription_name}"
+      count        = length(var.subscription_name) > 0 ? 1 : 0
+      subscription = var.subscription_name
       role         = "roles/pubsub.editor"
       member       = "serviceAccount:${google_service_account.account.email}"
     }
 
-    output Email {value = "${google_service_account.account.email}"}
-    output Name {value = "${google_service_account.account.display_name}"}
-    output PrivateKeyData {value = "${google_service_account_key.key.private_key}"}
-    output ProjectId {value = "${google_service_account.account.project}"}
-    output UniqueId {value = "${google_service_account.account.unique_id}"}
+    output "Email" {
+      value = google_service_account.account.email
+    }
 
+    output "Name" {
+      value = google_service_account.account.display_name
+    }
+
+    output "PrivateKeyData" {
+      value = google_service_account_key.key.private_key
+    }
+
+    output "ProjectId" {
+      value = google_service_account.account.project
+    }
+
+    output "UniqueId" {
+      value = google_service_account.account.unique_id
+    }
   outputs:
   - required: true
     field_name: Email

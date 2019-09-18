@@ -81,27 +81,46 @@ provision:
       minimum: 1
   computed_inputs: []
   template: |+
-    variable cluster_id {type = "string"}
-    variable display_name {type = "string"}
-    variable name {type = "string"}
-    variable num_nodes {type = "string"}
-    variable storage_type {type = "string"}
-    variable zone {type = "string"}
+    variable "cluster_id" {
+      type = string
+    }
+
+    variable "display_name" {
+      type = string
+    }
+
+    variable "name" {
+      type = string
+    }
+
+    variable "num_nodes" {
+      type = string
+    }
+
+    variable "storage_type" {
+      type = string
+    }
+
+    variable "zone" {
+      type = string
+    }
 
     resource "google_bigtable_instance" "instance" {
-      name          = "${var.name}"
+      name          = var.name
       instance_type = "PRODUCTION"
-      display_name  = "${var.display_name}"
+      display_name  = var.display_name
 
       cluster {
-        cluster_id   = "${var.cluster_id}"
-        zone         = "${var.zone}"
-        num_nodes    = "${var.num_nodes}"
-        storage_type = "${var.storage_type}"
+        cluster_id   = var.cluster_id
+        zone         = var.zone
+        num_nodes    = var.num_nodes
+        storage_type = var.storage_type
       }
     }
 
-    output instance_id {value = "${var.name}"}
+    output "instance_id" {
+      value = var.name
+    }
   outputs:
   - field_name: instance_id
     required: true
@@ -130,28 +149,47 @@ bind:
     overwrite: true
     type: ""
   template: |
-    variable role {type = "string"}
-    variable service_account_name {type = "string"}
+    variable "role" {
+      type = string
+    }
+
+    variable "service_account_name" {
+      type = string
+    }
 
     resource "google_service_account" "account" {
-      account_id = "${var.service_account_name}"
-      display_name = "${var.service_account_name}"
+      account_id   = var.service_account_name
+      display_name = var.service_account_name
     }
 
     resource "google_service_account_key" "key" {
-      service_account_id = "${google_service_account.account.name}"
+      service_account_id = google_service_account.account.name
     }
 
     resource "google_project_iam_member" "instance" {
-      role    = "roles/${var.role}"
-      member  = "serviceAccount:${google_service_account.account.email}"
+      role   = "roles/${var.role}"
+      member = "serviceAccount:${google_service_account.account.email}"
     }
 
-    output Email {value = "${google_service_account.account.email}"}
-    output Name {value = "${google_service_account.account.display_name}"}
-    output PrivateKeyData {value = "${google_service_account_key.key.private_key}"}
-    output ProjectId {value = "${google_service_account.account.project}"}
-    output UniqueId {value = "${google_service_account.account.unique_id}"}
+    output "Email" {
+      value = google_service_account.account.email
+    }
+
+    output "Name" {
+      value = google_service_account.account.display_name
+    }
+
+    output "PrivateKeyData" {
+      value = google_service_account_key.key.private_key
+    }
+
+    output "ProjectId" {
+      value = google_service_account.account.project
+    }
+
+    output "UniqueId" {
+      value = google_service_account.account.unique_id
+    }
   outputs:
   - required: true
     field_name: Email

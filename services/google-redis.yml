@@ -85,26 +85,49 @@ provision:
     overwrite: true
     type: object
   template: |-
-    variable service_tier { type = "string" }
-    variable authorized_network { type = "string" }
-    variable display_name { type = "string" }
-    variable instance_id { type = "string" }
-    variable region { type = "string" }
-    variable memory_size_gb { type = "string" }
-    variable labels { type = "map" }
+    variable "service_tier" {
+      type = string
+    }
+
+    variable "authorized_network" {
+      type = string
+    }
+
+    variable "display_name" {
+      type = string
+    }
+
+    variable "instance_id" {
+      type = string
+    }
+
+    variable "region" {
+      type = string
+    }
+
+    variable "memory_size_gb" {
+      type = string
+    }
+
+    variable "labels" {
+      type = map(string)
+    }
 
     data "google_compute_network" "default-network" {
       name = "default"
     }
 
     resource "google_redis_instance" "instance" {
-      name               = "${var.instance_id}"
-      tier               = "${var.service_tier}"
-      memory_size_gb     = "${var.memory_size_gb}"
-      display_name       = "${var.display_name}"
-      region             = "${var.region}"
-      authorized_network = "${coalesce(var.authorized_network, data.google_compute_network.default-network.self_link)}"
-      labels             = "${var.labels}"
+      name           = var.instance_id
+      tier           = var.service_tier
+      memory_size_gb = var.memory_size_gb
+      display_name   = var.display_name
+      region         = var.region
+      authorized_network = coalesce(
+        var.authorized_network,
+        data.google_compute_network.default-network.self_link,
+      )
+      labels = var.labels
 
       timeouts {
         create = "15m"
@@ -113,11 +136,25 @@ provision:
       }
     }
 
-    output memory_size_gb { value = "${google_redis_instance.instance.memory_size_gb}" }
-    output service_tier { value = "${google_redis_instance.instance.tier}" }
-    output redis_version { value = "${google_redis_instance.instance.redis_version}" }
-    output host { value = "${google_redis_instance.instance.host}" }
-    output port { value = "${google_redis_instance.instance.port}" }
+    output "memory_size_gb" {
+      value = google_redis_instance.instance.memory_size_gb
+    }
+
+    output "service_tier" {
+      value = google_redis_instance.instance.tier
+    }
+
+    output "redis_version" {
+      value = google_redis_instance.instance.redis_version
+    }
+
+    output "host" {
+      value = google_redis_instance.instance.host
+    }
+
+    output "port" {
+      value = google_redis_instance.instance.port
+    }
   outputs:
   - required: true
     field_name: memory_size_gb
