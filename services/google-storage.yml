@@ -14,7 +14,7 @@
 ---
 version: 1
 name: google-storage-v2
-id: b9e4332e-b42b-4680-bda5-ea1506797474
+id: 63f1aa1c-b51a-4761-a25b-0a369022d43e
 description: Unified object storage, from live applications data to cloud archival.
 display_name: Google Cloud Storage
 image_url: https://cloud.google.com/_static/images/cloud/products/logos/svg/storage.svg
