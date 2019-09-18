@@ -24,7 +24,7 @@ support_url: https://cloud.google.com/iam/docs/getting-support
 tags: [gcp, iam]
 plans:
 - name: cloudasset-viewer
-  id: 45ad248c-d651-43e3-b7db-a185cd38c515
+  id: e15a17f8-503c-4006-91ae-064c4d109dca
   description: Read only access to Cloud Assets metadata.
   display_name: "Cloud Asset Viewer"
   properties:
@@ -119,6 +119,6 @@ bind:
 examples:
 - name: Cloud Asset Viewer
   description: Creates a service account and grants it the ability to use the Cloud Assets audit endpoints.
-  plan_id: 45ad248c-d651-43e3-b7db-a185cd38c515
+  plan_id: e15a17f8-503c-4006-91ae-064c4d109dca
   provision_params: {}
   bind_params: {}
