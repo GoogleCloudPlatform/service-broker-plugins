@@ -76,7 +76,7 @@ provision:
     constraints:
       maxLength: 222
       minLength: 3
-      pattern: ^[A-Za-z0-9_\.]+$
+      pattern: ^[a-z0-9_.-]+$
   - field_name: location
     type: string
     details: 'The location of the bucket. Object data for objects in the bucket resides
