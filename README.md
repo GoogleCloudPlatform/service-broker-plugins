@@ -1,4 +1,8 @@
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+## Archived
+
+This project is no longer actively maintained. Please switch to to using the fork at https://github.com/cloudfoundry/csb-brokerpak-gcp which is the Cloud Foundry community mainted version of this project.
+
+--- 
 
 # Service Broker Brokerpaks
 
